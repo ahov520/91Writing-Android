@@ -1,0 +1,146 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Web + Assemble APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci || npm install
+
+      - name: Build Vue web app
+        working-directory: web
+        run: npm run build
+
+      - name: Copy web dist into Android assets
+        run: |
+          rm -rf android/app/src/main/assets/www
+          mkdir -p android/app/src/main/assets/www
+          cp -a web/dist/. android/app/src/main/assets/www/
+          # Ensure index exists
+          test -f android/app/src/main/assets/www/index.html
+          echo "Web assets:" && find android/app/src/main/assets/www -type f | head -50
+          du -sh android/app/src/main/assets/www
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >
+            tools
+            platform-tools
+            build-tools;35.0.0
+            platforms;android-35
+
+      - name: Decode release keystore (optional)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "${KEYSTORE_BASE64:-}" ] && [ -n "${KEYSTORE_PASSWORD:-}" ]; then
+            mkdir -p android/keystore
+            printf '%s' "$KEYSTORE_BASE64" | base64 -d > android/keystore/writing91-release.jks
+            ALIAS="${KEY_ALIAS:-writing91}"
+            KPASS="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
+            {
+              echo "storeFile=keystore/writing91-release.jks"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=$ALIAS"
+              echo "keyPassword=$KPASS"
+            } > android/keystore.properties
+            echo "Signing config written (release keystore present)."
+          else
+            echo "No KEYSTORE_* secrets — debug uses default Android debug keystore."
+          fi
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: writing91-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Build Release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --stacktrace
+        continue-on-error: true
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: writing91-release-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: ignore
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: writing91-release-apk
+          path: artifacts
+        continue-on-error: true
+
+      - name: Download Debug APK (fallback)
+        uses: actions/download-artifact@v4
+        with:
+          name: writing91-debug-apk
+          path: artifacts
+        continue-on-error: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

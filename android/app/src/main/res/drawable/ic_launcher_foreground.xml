@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Open book -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,30 h28 v48 h-28 z" />
+    <path
+        android:fillColor="#E8F3FF"
+        android:pathData="M56,30 h28 v48 h-28 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,28 c0,0 2,2 2,26 s-2,26 -2,26 h4 c0,0 2,-2 2,-26 s-2,-26 -2,-26 z" />
+    <!-- pen accent -->
+    <path
+        android:fillColor="#FFD666"
+        android:pathData="M72,62 l10,-18 4,2 -10,18 -5,1 z" />
+</vector>

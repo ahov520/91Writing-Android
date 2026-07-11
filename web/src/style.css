@@ -1,0 +1,201 @@
+/* 全局样式 */
+:root {
+  --primary-color: #409eff;
+  --success-color: #67c23a;
+  --warning-color: #e6a23c;
+  --danger-color: #f56c6c;
+  --info-color: #909399;
+  --text-primary: #303133;
+  --text-regular: #606266;
+  --text-secondary: #909399;
+  --text-placeholder: #c0c4cc;
+  --border-base: #dcdfe6;
+  --border-light: #e4e7ed;
+  --border-lighter: #ebeef5;
+  --border-extra-light: #f2f6fc;
+  --background-base: #f5f7fa;
+  --background-light: #fafafa;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  color: var(--text-primary);
+  background-color: #fff;
+}
+
+#app {
+  height: 100%;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 工具类 */
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mr-2 {
+  margin-right: 8px;
+}
+
+.ml-2 {
+  margin-left: 8px;
+}
+
+/* 响应式布局辅助 */
+@media (max-width: 1024px) {
+  .page-header,
+  .card-header,
+  .filter-content,
+  .selector-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .header-actions .el-button,
+  .filter-content .el-select,
+  .filter-content .el-input,
+  .filter-content .el-button,
+  .selector-content .el-select,
+  .selector-content .el-input {
+    width: 100%;
+  }
+
+  .filter-content,
+  .selector-content {
+    gap: 10px;
+  }
+
+  .page-header .header-actions {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    background-color: var(--background-light);
+  }
+
+  .el-dialog {
+    width: 94% !important;
+    margin: 0 auto;
+  }
+
+  .header-actions .el-button {
+    width: 100%;
+  }
+
+  .filter-content,
+  .selector-content {
+    align-items: stretch !important;
+  }
+
+  .filter-content > *,
+  .selector-content > * {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .el-col {
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+
+  .page-header,
+  .card-header {
+    text-align: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+}
+
+/* ========== Android WebView polish ========== */
+html.writing91-android,
+html.writing91-android body {
+  height: 100%;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+html.writing91-android #app {
+  height: 100%;
+  height: 100dvh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safer input zoom on iOS-like WebView */
+html.writing91-android input,
+html.writing91-android textarea,
+html.writing91-android select {
+  font-size: 16px;
+}
+
+/* Element Plus dialogs / drawers full usable on small screens */
+@media (max-width: 768px) {
+  html.writing91-android .el-dialog {
+    width: 92% !important;
+    margin: 8vh auto !important;
+  }
+  html.writing91-android .el-drawer {
+    width: 88% !important;
+  }
+  html.writing91-android .el-message-box {
+    width: 90% !important;
+  }
+}

@@ -1,0 +1,34 @@
+# Node / web
+web/node_modules/
+web/dist/
+web/.vite/
+web/*.local
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/keystore.properties
+android/keystore/
+android/.idea/
+android/*.iml
+android/captures/
+android/.cxx/
+android/app/src/main/assets/www/
+!android/app/src/main/assets/www/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# Secrets
+.env
+.env.*
+.github_token*

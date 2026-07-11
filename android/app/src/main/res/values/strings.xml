@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">91写作</string>
+    <string name="loading">正在加载…</string>
+    <string name="reload">重新加载</string>
+    <string name="exit_confirm">再按一次退出应用</string>
+    <string name="download_started">开始下载：%1$s</string>
+    <string name="no_web_assets">未找到前端资源，请通过 GitHub Actions 构建完整 APK</string>
+</resources>
