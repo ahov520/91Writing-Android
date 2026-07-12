@@ -16,6 +16,7 @@ const META_MIGRATED = '__writing91_idb_migrated_v1'
 /** Keys always stored in IndexedDB (large / growing). */
 const MANAGED_KEYS = new Set([
   'novels',
+  'novels_prev',
   'prompts',
   'writingGoals',
   'novelGenres',
@@ -62,6 +63,7 @@ let origRemoveItem = null
 let origClear = null
 let origKey = null
 let origLengthDesc = null
+let persistRequested = false
 
 function isManagedKey(key) {
   if (key == null) return false
@@ -143,12 +145,36 @@ function idbGetAll(db) {
   })
 }
 
-function scheduleFlush() {
+function scheduleFlush(immediate = false) {
+  if (immediate) {
+    if (flushTimer) {
+      clearTimeout(flushTimer)
+      flushTimer = null
+    }
+    flushPending().catch((e) => console.warn('[storage] flush failed', e))
+    return
+  }
   if (flushTimer) return
   flushTimer = setTimeout(() => {
     flushTimer = null
     flushPending().catch((e) => console.warn('[storage] flush failed', e))
-  }, 120)
+  }, 80)
+}
+
+/** Request persistent storage (reduce eviction risk on Android WebView). */
+export async function requestPersist() {
+  if (persistRequested || typeof navigator === 'undefined') return false
+  persistRequested = true
+  try {
+    if (navigator.storage?.persist) {
+      const ok = await navigator.storage.persist()
+      console.info('[storage] persist:', ok)
+      return ok
+    }
+  } catch (e) {
+    console.warn('[storage] persist failed', e)
+  }
+  return false
 }
 
 async function flushPending() {
@@ -289,8 +315,9 @@ function patchLocalStorage() {
     if (shouldPromote(k, str) || memory.has(k)) {
       memory.set(k, str)
       pendingWrites.set(k, str)
-      scheduleFlush()
-      // Free localStorage quota for managed keys
+      // Critical large keys flush sooner
+      const urgent = k === 'novels' || k.startsWith('snapshots_') || k === 'auto_backup_v1'
+      scheduleFlush(urgent)
       try {
         origRemoveItem(k)
       } catch {
@@ -338,9 +365,8 @@ export function initStorage() {
       await migrateFromLocalStorage(db)
       await hydrateMemory(db)
       ready = true
-      // Persist anything still queued
       await flushPending()
-      // Flush on page hide
+      requestPersist().catch(() => {})
       if (typeof document !== 'undefined') {
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'hidden') {
@@ -408,5 +434,6 @@ export default {
   setJSON,
   removeKey,
   flushStorage,
+  requestPersist,
   listManagedKeys
 }

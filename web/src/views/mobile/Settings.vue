@@ -103,6 +103,13 @@
           placeholder="https://api.openai.com/v1"
         />
         <span class="m-hint">OpenAI 兼容接口，路径需含 /v1（按服务商要求）</span>
+        <span
+          v-if="form.baseURL && form.baseURL.trim().toLowerCase().startsWith('http:')"
+          class="m-danger-text"
+          style="display: block; margin-top: 6px"
+        >
+          正在使用 HTTP（非加密）。局域网自建代理可用；公网请优先 HTTPS。
+        </span>
       </div>
       <div v-else class="m-field">
         <label>Base URL</label>

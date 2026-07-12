@@ -53,19 +53,33 @@ function normalizeNovel(raw) {
   return recomputeNovelStats(n)
 }
 
+function parseNovelsRaw(raw) {
+  if (!raw) return null
+  const parsed = JSON.parse(raw)
+  if (!Array.isArray(parsed)) throw new Error('novels is not an array')
+  return parsed.map(normalizeNovel)
+}
+
 export function useNovels() {
   async function load() {
     try {
       const raw = localStorage.getItem('novels')
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        novels.value = (Array.isArray(parsed) ? parsed : []).map(normalizeNovel)
-      } else {
+      novels.value = parseNovelsRaw(raw) || []
+    } catch (e) {
+      console.error('load novels failed, try backup', e)
+      try {
+        const bak = localStorage.getItem('novels_prev')
+        novels.value = parseNovelsRaw(bak) || []
+        if (novels.value.length) {
+          // restore primary from backup
+          localStorage.setItem('novels', bak)
+          await flushStorage()
+          console.info('[novels] recovered from novels_prev')
+        }
+      } catch (e2) {
+        console.error('backup load failed', e2)
         novels.value = []
       }
-    } catch (e) {
-      console.error('load novels failed', e)
-      novels.value = []
     }
     loaded.value = true
     return novels.value
@@ -73,7 +87,17 @@ export function useNovels() {
 
   async function save() {
     try {
-      localStorage.setItem('novels', JSON.stringify(novels.value))
+      const json = JSON.stringify(novels.value)
+      // rolling backup of previous good payload
+      try {
+        const prev = localStorage.getItem('novels')
+        if (prev && prev !== json) {
+          localStorage.setItem('novels_prev', prev)
+        }
+      } catch {
+        /* ignore backup failure */
+      }
+      localStorage.setItem('novels', json)
       await flushStorage()
     } catch (e) {
       console.error('save novels failed', e)

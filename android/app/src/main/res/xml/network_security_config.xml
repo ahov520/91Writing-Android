@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext is permitted so users can point Base URL at local/LAN
+  OpenAI-compatible proxies (http://192.168.x.x:port/v1).
+  Prefer HTTPS when available.
+-->
 <network-security-config>
-    <!-- Allow user-configured custom OpenAI-compatible endpoints (HTTP/HTTPS) -->
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />

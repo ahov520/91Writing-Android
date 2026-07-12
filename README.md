@@ -4,7 +4,7 @@
 
 > Vue 3 轻量移动 UI + 原生 WebView 壳 + **GitHub Actions 自动构建 APK**
 
-## 功能（v2.2 移动端）
+## 功能（v2.4 移动端）
 
 - 📖 **书架** — 创建 / 筛选 / 封面 / 复制 / 删除 / 导出  
 - ✍️ **写作页** — 章节排序、快照、大纲导入、阅读模式、自动保存  
@@ -13,6 +13,8 @@
 - ⚙️ **API + 深色浅色 / 字号行距**  
 - 💾 **备份** — 分类导出 / 完整备份 / 旧格式兼容  
 - 📱 **原生 Bridge** — 导出分享、生成时不息屏、返回键适配  
+- 🔒 **WebViewAssetLoader** 虚拟 HTTPS 加载前端；Release 开启 R8  
+- 💾 **IndexedDB + persist + novels滚动备份**（`novels_prev`）  
 
 所有数据保存在设备本地（IndexedDB + localStorage），**不上传服务器**。AI 请求走你自行配置的 API。
 

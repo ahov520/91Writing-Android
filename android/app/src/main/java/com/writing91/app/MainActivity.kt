@@ -6,15 +6,15 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.view.View
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.view.View
 import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
@@ -24,6 +24,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -39,14 +40,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.webkit.WebViewAssetLoader
 import com.google.android.material.button.MaterialButton
 import org.json.JSONObject
 import java.io.File
 
 /**
- * Hosts the full 91Writing Vue SPA inside a WebView.
- * All features (AI writing, novel/chapter management, prompts, billing, backup…)
- * run from the bundled web assets under file:///android_asset/www/index.html
+ * Hosts the mobile Vue SPA via WebViewAssetLoader (https virtual host).
+ * JS bridge: Writing91Bridge (export / keepScreenOn / haptic / version)
  */
 class MainActivity : AppCompatActivity() {
 
@@ -56,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var errorText: TextView
     private lateinit var loadingText: TextView
     private lateinit var reloadButton: MaterialButton
+    private lateinit var assetLoader: WebViewAssetLoader
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var lastBackPressMs = 0L
@@ -94,6 +96,10 @@ class MainActivity : AppCompatActivity() {
         loadingText = findViewById(R.id.loadingText)
         reloadButton = findViewById(R.id.reloadButton)
 
+        assetLoader = WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
         val root = findViewById<FrameLayout>(R.id.root)
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -118,12 +124,15 @@ class MainActivity : AppCompatActivity() {
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
-            allowFileAccess = true
+            allowFileAccess = false
             allowContentAccess = true
-            // Needed for Vite relative asset loads inside file:// www
-            allowFileAccessFromFileURLs = true
-            allowUniversalAccessFromFileURLs = true
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            // AssetLoader serves https://appassets… — no file:// universal access
+            @Suppress("DEPRECATION")
+            allowFileAccessFromFileURLs = false
+            @Suppress("DEPRECATION")
+            allowUniversalAccessFromFileURLs = false
+            // User may point API to HTTP custom endpoints
+            mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             cacheMode = WebSettings.LOAD_DEFAULT
             mediaPlaybackRequiresUserGesture = false
             setSupportZoom(true)
@@ -134,22 +143,28 @@ class MainActivity : AppCompatActivity() {
             textZoom = 100
             javaScriptCanOpenWindowsAutomatically = true
             setSupportMultipleWindows(false)
-            // Local storage / IndexedDB capacity for large novels
-            cacheMode = WebSettings.LOAD_DEFAULT
-            userAgentString = "$userAgentString Writing91Android/2.2"
+            userAgentString = "$userAgentString Writing91Android/2.4"
         }
 
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest
+            ): WebResourceResponse? {
+                return assetLoader.shouldInterceptRequest(request.url)
+            }
+
             override fun shouldOverrideUrlLoading(
                 view: WebView,
                 request: WebResourceRequest
             ): Boolean {
                 val url = request.url ?: return false
+                val host = url.host ?: ""
                 val scheme = url.scheme?.lowercase() ?: return false
-                // Keep all http(s)/file loads inside WebView so AI API + SPA routing work.
-                // Only hand off non-web schemes to the system.
+                // Keep app assets + http(s) API inside WebView
+                if (host == "appassets.androidplatform.net") return false
                 return when (scheme) {
-                    "http", "https", "file", "about", "blob", "data" -> false
+                    "http", "https", "about", "blob", "data" -> false
                     "mailto", "tel", "sms" -> {
                         try {
                             startActivity(Intent(Intent.ACTION_VIEW, url))
@@ -230,9 +245,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun injectAndroidBridge() {
         val versionName = try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "2.2"
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "2.4"
         } catch (_: Exception) {
-            "2.2"
+            "2.4"
         }
         webView.evaluateJavascript(
             """
@@ -253,14 +268,13 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /** JS bridge for export / keepScreenOn / haptic / version */
     inner class Writing91Bridge {
         @JavascriptInterface
         fun getVersion(): String {
             return try {
-                packageManager.getPackageInfo(packageName, 0).versionName ?: "2.2.0"
+                packageManager.getPackageInfo(packageName, 0).versionName ?: "2.4.0"
             } catch (_: Exception) {
-                "2.2.0"
+                "2.4.0"
             }
         }
 
@@ -297,7 +311,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        /** filename + base64 payload + mime */
         @JavascriptInterface
         fun exportText(filename: String?, base64: String?, mime: String?) {
             if (base64.isNullOrBlank()) return
@@ -305,7 +318,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
                     val safeName = (filename?.ifBlank { null } ?: "export.txt")
-                        .replace(Regex("[\\/:*?\"<>|]"), "_")
+                        .replace(Regex("[\\\\/:*?\"<>|]"), "_")
                     val file = File(cacheDir, safeName)
                     file.writeBytes(bytes)
                     val uri = FileProvider.getUriForFile(
@@ -338,13 +351,11 @@ class MainActivity : AppCompatActivity() {
         mimeType: String?
     ) {
         try {
-            // blob: URLs cannot use DownloadManager — ask WebView JS to trigger save
             if (url.startsWith("blob:")) {
                 Toast.makeText(this, "请使用应用内导出功能保存文件", Toast.LENGTH_SHORT).show()
                 return
             }
             if (url.startsWith("data:")) {
-                // Save data URL to cache and share
                 shareDataUrl(url, mimeType)
                 return
             }
@@ -358,7 +369,6 @@ class MainActivity : AppCompatActivity() {
             dm.enqueue(request)
             Toast.makeText(this, getString(R.string.download_started, fileName), Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            // Fallback: open in browser
             try {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
             } catch (_: Exception) {
@@ -405,7 +415,6 @@ class MainActivity : AppCompatActivity() {
         errorPanel.visibility = View.GONE
         webView.visibility = View.INVISIBLE
 
-        val indexPath = "file:///android_asset/www/index.html"
         val hasAssets = try {
             assets.open("www/index.html").close()
             true
@@ -417,7 +426,8 @@ class MainActivity : AppCompatActivity() {
             showError(getString(R.string.no_web_assets))
             return
         }
-        webView.loadUrl(indexPath)
+        // Virtual HTTPS origin for assets (safer than file://)
+        webView.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
     }
 
     private fun showError(message: String) {
@@ -434,7 +444,6 @@ class MainActivity : AppCompatActivity() {
                     finish()
                     return
                 }
-                // Prefer SPA history via hash router
                 webView.evaluateJavascript(
                     "(function(){try{if(location.hash&&location.hash!=='#/'&&location.hash!=='#'){history.back();return true;}return false;}catch(e){return false;}})()"
                 ) { result ->
