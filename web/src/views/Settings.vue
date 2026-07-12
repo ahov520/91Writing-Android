@@ -335,6 +335,7 @@ import { ref, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Download, Upload, Document, Setting, Delete, ChatLineSquare, Collection } from '@element-plus/icons-vue'
 import ApiConfig from '@/components/ApiConfig.vue'
+import { flushStorage } from '@/services/storage.js'
 
 // 响应式数据
 const activeTab = ref('api')
@@ -388,7 +389,13 @@ const calculateDataStats = () => {
   }
 }
 
-const exportAllData = () => {
+const exportAllData = async () => {
+  try {
+    // Ensure IndexedDB pending writes are visible via patched localStorage
+    await flushStorage()
+  } catch {
+    /* ignore */
+  }
   const data = {
     novels: JSON.parse(localStorage.getItem('novels') || '[]'),
     prompts: JSON.parse(localStorage.getItem('prompts') || '[]'),
@@ -399,9 +406,10 @@ const exportAllData = () => {
       tokenUsage: JSON.parse(localStorage.getItem('token-usage') || '{}')
     },
     exportTime: new Date().toISOString(),
-    version: 'v0.7.0'
+    version: 'v0.7.0',
+    storage: 'indexeddb+localStorage'
   }
-  
+
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -409,7 +417,7 @@ const exportAllData = () => {
   a.download = `91写作-完整备份-${new Date().toISOString().split('T')[0]}.json`
   a.click()
   URL.revokeObjectURL(url)
-  
+
   ElMessage.success('完整数据导出成功')
 }
 

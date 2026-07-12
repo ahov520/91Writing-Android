@@ -6,40 +6,46 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './style.css'
+import { initStorage } from './services/storage.js'
+import { installMobileShell, setRouteChrome } from './utils/mobileShell.js'
 
-const app = createApp(App)
-const pinia = createPinia()
+async function bootstrap() {
+  // P2: migrate large localStorage payloads into IndexedDB before any view reads data
+  try {
+    await initStorage()
+  } catch (e) {
+    console.warn('storage init failed, continuing with localStorage', e)
+  }
 
-// 注册所有图标
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
+  // P5: keyboard-aware viewport + platform classes
+  installMobileShell()
+
+  const app = createApp(App)
+  const pinia = createPinia()
+
+  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component)
+  }
+
+  app.use(pinia)
+  app.use(router)
+  app.use(ElementPlus)
+
+  // Route chrome for CSS (hide bottom nav on writer, etc.)
+  router.afterEach((to) => {
+    setRouteChrome(to.path)
+  })
+  setRouteChrome(router.currentRoute.value?.path || '/')
+
+  app.mount('#app')
 }
 
-app.use(pinia)
-app.use(router)
-app.use(ElementPlus)
-
-
-// Android WebView polish hook
-try {
-  const ua = navigator.userAgent || ''
-  if (/Android/i.test(ua) || window.Writing91Android) {
-    document.documentElement.classList.add('writing91-android'); document.documentElement.setAttribute('data-platform', 'android') // Round 874
-  }
-} catch (e) {}
-
-
-// Round 421: expose viewport height CSS var for mobile browser chrome
-try {
-  const setVH = () => {
-    const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight
-    document.documentElement.style.setProperty('--app-vh', h + 'px')
-  }
-  setVH()
-  window.addEventListener('resize', setVH)
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', setVH)
-  }
-} catch (e) {}
-
-app.mount('#app')
+bootstrap().catch((err) => {
+  console.error('App bootstrap failed', err)
+  // Last-resort mount so user is not stuck on blank screen
+  const app = createApp(App)
+  app.use(createPinia())
+  app.use(router)
+  app.use(ElementPlus)
+  app.mount('#app')
+})

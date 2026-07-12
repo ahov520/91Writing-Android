@@ -1,5 +1,12 @@
 <template>
-  <div class="dashboard-container app-mesh-bg" :class="{ 'is-mobile': isMobile }">
+  <div
+    class="dashboard-container app-mesh-bg"
+    :class="{
+      'is-mobile': isMobile,
+      'is-writer-route': isWriterRoute,
+      'is-keyboard-open': keyboardOpen
+    }"
+  >
     <!-- 桌面端侧边栏 -->
     <div
       v-if="!isMobile"
@@ -267,14 +274,19 @@
       </div>
     </el-drawer>
 
-    <!-- 移动端底部导航 -->
-    <nav v-if="isMobile" class="mobile-bottom-nav" aria-label="主导航">
+    <!-- 移动端底部导航：写作页沉浸 / 键盘弹出时隐藏 -->
+    <nav
+      v-if="isMobile && showMobileBottomNav"
+      class="mobile-bottom-nav"
+      :class="{ 'is-keyboard-open': keyboardOpen }"
+      aria-label="主导航"
+    >
       <button
         v-for="item in mobileNavItems"
         :key="item.path"
         type="button"
         class="nav-item"
-        :class="{ active: activeMenu === item.path || (item.path !== '/' && activeMenu.startsWith(item.path)) }"
+        :class="{ active: isNavActive(item.path) }"
         @click="handleMenuSelect(item.path)"
       >
         <el-icon><component :is="item.icon" /></el-icon>
@@ -327,6 +339,20 @@ const mobileNavItems = computed(() => [
   { path: '/tools', short: '工具', icon: Tools },
   { path: '/settings', short: '设置', icon: Setting },
 ])
+
+// P5: writer immersion + keyboard — hide bottom chrome when editing
+const isWriterRoute = computed(() => {
+  const p = route.path || ''
+  return p === '/writer' || p.startsWith('/writer')
+})
+const keyboardOpen = ref(false)
+const showMobileBottomNav = computed(() => !isWriterRoute.value && !keyboardOpen.value)
+
+const isNavActive = (path) => {
+  const current = activeMenu.value || route.path || '/'
+  if (path === '/') return current === '/'
+  return current === path || current.startsWith(path + '/') || current.startsWith(path)
+}
 
 // 响应式数据
 const isCollapse = ref(false)
@@ -591,15 +617,29 @@ const initializeModelSelector = () => {
   }
 }
 
+const syncKeyboardState = () => {
+  try {
+    keyboardOpen.value =
+      document.documentElement.classList.contains('keyboard-open') ||
+      document.documentElement.getAttribute('data-keyboard') === 'open'
+  } catch {
+    keyboardOpen.value = false
+  }
+}
+
 const handleResize = () => {
-  isMobile.value = window.innerWidth <= 1024
-  isSmallMobile.value = window.innerWidth <= 480
+  // Prefer visualViewport width on Android when keyboard is open
+  const vw =
+    (window.visualViewport && window.visualViewport.width) || window.innerWidth
+  isMobile.value = vw <= 1024
+  isSmallMobile.value = vw <= 480
   if (isMobile.value) {
     isCollapse.value = false
   } else {
     mobileMenuVisible.value = false
     mobileActionsVisible.value = false
   }
+  syncKeyboardState()
 }
 
 // 监听路由变化
@@ -627,12 +667,29 @@ const handleStorageChange = (event) => {
   }
 }
 
+let keyboardObserver = null
+
 onMounted(() => {
   initializeModelSelector()
   handleResize()
+  syncKeyboardState()
 
   window.addEventListener('storage', handleStorageChange)
   window.addEventListener('resize', handleResize)
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', handleResize)
+  }
+
+  // Watch html class toggled by mobileShell.js
+  try {
+    keyboardObserver = new MutationObserver(() => syncKeyboardState())
+    keyboardObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-keyboard']
+    })
+  } catch {
+    /* ignore */
+  }
 
   const checkConfigChange = () => {
     const currentType = localStorage.getItem('apiConfigType')
@@ -649,6 +706,13 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('storage', handleStorageChange)
   window.removeEventListener('resize', handleResize)
+  if (window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', handleResize)
+  }
+  if (keyboardObserver) {
+    keyboardObserver.disconnect()
+    keyboardObserver = null
+  }
   if (window.modelSelectorInterval) {
     clearInterval(window.modelSelectorInterval)
     delete window.modelSelectorInterval
@@ -1298,6 +1362,33 @@ onUnmounted(() => {
 }
 .dashboard-container:has(.writer-container) .content-mobile {
   padding: 0 0 calc(84px + env(safe-area-inset-bottom));
+}
+/* P5: writer immersion — no bottom nav, use full height */
+.dashboard-container.is-writer-route .content-mobile,
+.dashboard-container.is-writer-route:has(.writer-container) .content-mobile {
+  padding: 0 !important;
+  height: var(--app-vh, 100dvh);
+  max-height: var(--app-vh, 100dvh);
+  overflow: hidden;
+}
+.dashboard-container.is-writer-route .header {
+  /* keep thin chrome; writer has its own title bar */
+  flex-shrink: 0;
+}
+.dashboard-container.is-keyboard-open .mobile-bottom-nav {
+  display: none !important;
+}
+.dashboard-container.is-keyboard-open.is-mobile .content-mobile {
+  padding-bottom: 12px;
+}
+.dashboard-container.is-mobile .main-container {
+  min-height: var(--app-vh, 100dvh);
+  max-height: var(--app-vh, 100dvh);
+}
+.dashboard-container.is-mobile .content {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 @media (max-width: 1024px) {
   .mobile-bottom-nav .nav-item.active {

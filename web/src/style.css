@@ -4065,3 +4065,84 @@ html.writing91-android .el-popover.el-popper {
 .inline-field .el-select {
   flex: 1;
 }
+
+
+/* ========== P2/P5: IndexedDB storage + mobile keyboard shell ========== */
+html {
+  height: 100%;
+  height: var(--app-vh, 100dvh);
+}
+body {
+  min-height: 100%;
+  min-height: var(--app-vh, 100dvh);
+  overflow-x: hidden;
+}
+#app {
+  min-height: var(--app-vh, 100dvh);
+  height: var(--app-vh, 100dvh);
+}
+
+/* Keyboard open: free vertical space for focused inputs */
+html.keyboard-open .mobile-bottom-nav,
+html[data-keyboard="open"] .mobile-bottom-nav,
+html.hide-bottom-nav .mobile-bottom-nav,
+html.route-writer .mobile-bottom-nav {
+  display: none !important;
+  pointer-events: none !important;
+}
+html.keyboard-open .content-mobile,
+html[data-keyboard="open"] .content-mobile {
+  padding-bottom: 12px !important;
+}
+html.route-writer .content-mobile,
+html.hide-bottom-nav .content-mobile {
+  padding-bottom: 0 !important;
+}
+
+/* Android WebView: pin shell height to visual viewport */
+html.writing91-android,
+html.writing91-android body,
+html.writing91-android #app {
+  height: var(--app-vh, 100dvh);
+  max-height: var(--app-vh, 100dvh);
+  overflow: hidden;
+}
+html.writing91-android .dashboard-container {
+  height: var(--app-vh, 100dvh);
+  max-height: var(--app-vh, 100dvh);
+}
+html.writing91-android .dashboard-container.is-mobile .main-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+html.writing91-android .dashboard-container.is-mobile .content {
+  flex: 1;
+  min-height: 0;
+}
+
+/* When keyboard is open, avoid fixed elements covering caret */
+html.keyboard-open .el-message,
+html[data-keyboard="open"] .el-message {
+  top: 12px !important;
+}
+html.keyboard-open .el-dialog.is-fullscreen,
+html[data-keyboard="open"] .el-dialog.is-fullscreen {
+  height: var(--app-vh, 100dvh) !important;
+  max-height: var(--app-vh, 100dvh) !important;
+}
+
+/* Touch targets */
+html.is-touch-shell .mobile-bottom-nav .nav-item {
+  min-height: 48px;
+  -webkit-tap-highlight-color: transparent;
+}
+html.is-touch-shell .el-button {
+  touch-action: manipulation;
+}
+
+/* Writer full-bleed on mobile */
+html.route-writer .dashboard-container.is-mobile .header .page-subtitle {
+  display: none;
+}

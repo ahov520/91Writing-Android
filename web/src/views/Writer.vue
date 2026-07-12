@@ -12855,4 +12855,19 @@ ${customPrompt}`
   align-content: start;
 }
 
+/* P5: keyboard-aware height for Android / mobile shell */
+.writer-container {
+  height: var(--app-vh, 100dvh);
+  max-height: var(--app-vh, 100dvh);
+}
+html.keyboard-open .writer-container,
+html[data-keyboard="open"] .writer-container {
+  height: var(--app-vh, 100dvh);
+  max-height: var(--app-vh, 100dvh);
+}
+.writer-container.is-mobile .editor-wrapper :deep(.w-e-text-container) {
+  /* keep caret visible above soft keyboard */
+  scroll-padding-bottom: 24px;
+}
+
 </style>
