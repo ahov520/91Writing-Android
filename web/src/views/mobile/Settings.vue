@@ -41,6 +41,27 @@
           @input="setLineHeight(Number($event.target.value))"
         />
       </div>
+      <div class="m-field">
+        <label>AI 上下文长度（{{ prefs.contextChars }} 字）</label>
+        <input
+          :value="prefs.contextChars"
+          class="m-input"
+          type="range"
+          min="800"
+          max="8000"
+          step="200"
+          @input="setContextChars(Number($event.target.value))"
+        />
+        <span class="m-hint">续写/润色时带入的正文末尾长度</span>
+      </div>
+      <label class="m-hint" style="display: flex; gap: 8px; align-items: center">
+        <input
+          type="checkbox"
+          :checked="prefs.includePrevChapter"
+          @change="setIncludePrevChapter($event.target.checked)"
+        />
+        续写时附带上一章片段
+      </label>
     </div>
 
     <div class="m-section-title">API 配置</div>
@@ -91,7 +112,31 @@
 
       <div class="m-field">
         <label>模型</label>
-        <input v-model="form.selectedModel" class="m-input" placeholder="gpt-3.5-turbo" />
+        <input v-model="form.selectedModel" class="m-input" list="model-list" placeholder="gpt-3.5-turbo" />
+        <datalist id="model-list">
+          <option v-for="m in modelOptions" :key="m" :value="m" />
+        </datalist>
+        <div class="m-chips" style="margin-top: 8px; padding-bottom: 0">
+          <button
+            v-for="m in COMMON_MODELS.slice(0, 6)"
+            :key="m"
+            type="button"
+            class="m-chip"
+            :class="{ 'is-active': form.selectedModel === m }"
+            @click="form.selectedModel = m"
+          >
+            {{ m }}
+          </button>
+        </div>
+        <button
+          type="button"
+          class="m-btn m-btn--ghost m-btn--sm"
+          style="margin-top: 8px"
+          :disabled="loadingModels"
+          @click="loadModels"
+        >
+          {{ loadingModels ? '拉取中…' : '从接口拉取模型列表' }}
+        </button>
       </div>
 
       <div class="m-field">
@@ -159,7 +204,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, onMounted } from 'vue'
+import { reactive, ref, watch, onMounted, computed } from 'vue'
 import { useApiConfig } from '../../composables/useApiConfig.js'
 import { usePrefs } from '../../composables/usePrefs.js'
 import apiService from '../../services/api.js'
@@ -175,10 +220,26 @@ const {
   updateOfficial,
   updateCustom,
   applyToService,
-  load
+  load,
+  fetchModels,
+  COMMON_MODELS
 } = useApiConfig()
 
-const { prefs, setTheme, setFontSize, setLineHeight } = usePrefs()
+const {
+  prefs,
+  setTheme,
+  setFontSize,
+  setLineHeight,
+  setContextChars,
+  setIncludePrevChapter
+} = usePrefs()
+
+const remoteModels = ref([])
+const loadingModels = ref(false)
+const modelOptions = computed(() => {
+  const set = new Set([...(remoteModels.value || []), ...COMMON_MODELS])
+  return [...set]
+})
 
 const form = reactive({
   apiKey: '',
@@ -215,6 +276,20 @@ function save() {
   }
   syncForm()
   toast.success('已保存')
+}
+
+async function loadModels() {
+  loadingModels.value = true
+  try {
+    save()
+    const list = await fetchModels()
+    remoteModels.value = list
+    toast.success(`已获取 ${list.length} 个模型`)
+  } catch (e) {
+    toast.error(e?.message || '拉取失败')
+  } finally {
+    loadingModels.value = false
+  }
 }
 
 async function testApi() {

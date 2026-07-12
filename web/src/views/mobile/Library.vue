@@ -28,6 +28,29 @@
       </div>
     </div>
 
+    <div v-if="goalBanner" class="m-card m-goal-banner" @click="$router.push('/goals')">
+      <div class="m-row-between">
+        <strong style="font-size: 0.9rem">🎯 今日 {{ goalBanner.progress }}/{{ goalBanner.target }} 字</strong>
+        <span class="m-muted" style="font-size: 0.8rem">连续 {{ goalBanner.streak }} 天 ›</span>
+      </div>
+      <div class="m-progress" style="margin-top: 8px">
+        <div class="m-progress__bar" :style="{ width: goalBanner.pct + '%' }" />
+      </div>
+    </div>
+
+    <div v-if="recentList.length" class="m-section-title" style="margin-top: 4px">最近打开</div>
+    <div v-if="recentList.length" class="m-chips" style="padding-bottom: 8px">
+      <button
+        v-for="r in recentList"
+        :key="r.id"
+        type="button"
+        class="m-chip is-active"
+        @click="openNovel(r)"
+      >
+        {{ r.title }}
+      </button>
+    </div>
+
     <div class="m-field" style="margin-bottom: 8px">
       <input
         v-model="keyword"
@@ -69,6 +92,16 @@
         @click="statusFilter = 'completed'"
       >
         完成
+      </button>
+      <button
+        v-for="g in genreChips"
+        :key="g.code"
+        type="button"
+        class="m-chip"
+        :class="{ 'is-active': genreFilter === g.code }"
+        @click="genreFilter = genreFilter === g.code ? 'all' : g.code"
+      >
+        {{ g.name }}
       </button>
     </div>
 
@@ -227,8 +260,12 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNovels, statusLabel } from '../../composables/useNovels.js'
 import { useGenres } from '../../composables/useGenres.js'
+import { useGoals } from '../../composables/useGoals.js'
+import { runDailyAutoBackup } from '../../composables/useAutoBackup.js'
 import toast from '../../services/toast.js'
 import { downloadText } from '../../utils/download.js'
+
+const RECENT_KEY = 'writing91_recent_novels'
 
 const router = useRouter()
 const {
@@ -240,12 +277,16 @@ const {
   updateNovel,
   deleteNovel,
   duplicateNovel,
-  exportNovelText
+  exportNovelText,
+  getById
 } = useNovels()
 const { options: GENRES, nameOf: genreName, bumpUsage } = useGenres()
+const { todayBanner, load: loadGoals } = useGoals()
 
 const keyword = ref('')
 const statusFilter = ref('all')
+const genreFilter = ref('all')
+const recentIds = ref([])
 const showCreate = ref(false)
 const showDetail = ref(false)
 const menuNovel = ref(null)
@@ -264,10 +305,24 @@ const totalChapters = computed(() =>
   novels.value.reduce((s, n) => s + (n.chapterList?.length || 0), 0)
 )
 
+const goalBanner = computed(() => todayBanner())
+
+const genreChips = computed(() => (GENRES.value || []).slice(0, 8))
+
+const recentList = computed(() =>
+  recentIds.value
+    .map((id) => novels.value.find((n) => String(n.id) === String(id)))
+    .filter(Boolean)
+    .slice(0, 6)
+)
+
 const filtered = computed(() => {
   let list = sorted.value
   if (statusFilter.value !== 'all') {
     list = list.filter((n) => n.status === statusFilter.value)
+  }
+  if (genreFilter.value !== 'all') {
+    list = list.filter((n) => n.genre === genreFilter.value)
   }
   const k = keyword.value.trim().toLowerCase()
   if (!k) return list
@@ -277,6 +332,25 @@ const filtered = computed(() => {
       (n.description || '').toLowerCase().includes(k)
   )
 })
+
+function loadRecent() {
+  try {
+    recentIds.value = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')
+    if (!Array.isArray(recentIds.value)) recentIds.value = []
+  } catch {
+    recentIds.value = []
+  }
+}
+
+function pushRecent(id) {
+  const ids = [String(id), ...recentIds.value.filter((x) => String(x) !== String(id))].slice(0, 12)
+  recentIds.value = ids
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(ids))
+  } catch {
+    /* ignore */
+  }
+}
 
 function formatWords(n) {
   const v = Number(n) || 0
@@ -326,6 +400,7 @@ async function create() {
 
 function openNovel(n) {
   menuNovel.value = null
+  if (n?.id) pushRecent(n.id)
   router.push(`/write/${n.id}`)
 }
 
@@ -419,5 +494,10 @@ async function doDelete() {
   toast.success('已删除')
 }
 
-onMounted(() => load())
+onMounted(async () => {
+  await load()
+  loadGoals()
+  loadRecent()
+  runDailyAutoBackup(novels.value).catch(() => {})
+})
 </script>

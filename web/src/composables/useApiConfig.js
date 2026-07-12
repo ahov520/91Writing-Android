@@ -114,6 +114,47 @@ export function useApiConfig() {
     else updateCustom(patch)
   }
 
+  /** Fetch OpenAI-compatible /models list */
+  async function fetchModels() {
+    applyToService()
+    const cfg = current()
+    if (!cfg.apiKey || !cfg.baseURL) {
+      throw new Error('请先配置 API Key 与地址')
+    }
+    const base = (cfg.baseURL || '').replace(/\/$/, '')
+    const res = await fetch(`${base}/models`, {
+      headers: {
+        Authorization: `Bearer ${cfg.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!res.ok) {
+      const t = await res.text().catch(() => '')
+      throw new Error(`拉取模型失败: ${res.status} ${t.slice(0, 120)}`)
+    }
+    const data = await res.json()
+    const list = Array.isArray(data?.data)
+      ? data.data
+      : Array.isArray(data)
+        ? data
+        : []
+    return list
+      .map((m) => m.id || m.name || m.model || '')
+      .filter(Boolean)
+      .sort()
+  }
+
+  const COMMON_MODELS = [
+    'gpt-4o-mini',
+    'gpt-4o',
+    'gpt-3.5-turbo',
+    'claude-3-5-sonnet',
+    'claude-4-sonnet',
+    'deepseek-chat',
+    'deepseek-reasoner',
+    'gemini-2.0-flash'
+  ]
+
   return {
     official,
     custom,
@@ -127,6 +168,8 @@ export function useApiConfig() {
     updateOfficial,
     updateCustom,
     updateActive,
-    applyToService
+    applyToService,
+    fetchModels,
+    COMMON_MODELS
   }
 }

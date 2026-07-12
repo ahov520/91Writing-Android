@@ -115,6 +115,48 @@ export function useGoals() {
     return Math.min(100, Math.round(((g.progress || 0) / g.target) * 100))
   }
 
+  /** Last N days heat for first daily goal (or aggregate). */
+  function heatDays(days = 14) {
+    const daily =
+      goals.value.find((g) => g.type === 'daily' && g.status !== 'archived') ||
+      goals.value[0]
+    const history = daily?.history || {}
+    const out = []
+    const d = new Date()
+    for (let i = days - 1; i >= 0; i--) {
+      const x = new Date(d)
+      x.setDate(d.getDate() - i)
+      const k = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
+      const words = history[k] || 0
+      const target = daily?.target || 2000
+      const level =
+        words <= 0 ? 0 : words < target * 0.3 ? 1 : words < target * 0.7 ? 2 : words < target ? 3 : 4
+      out.push({
+        date: k,
+        label: `${x.getMonth() + 1}/${x.getDate()}`,
+        words,
+        level,
+        isToday: k === todayKey()
+      })
+    }
+    return out
+  }
+
+  /** Today progress for library banner */
+  function todayBanner() {
+    const daily = goals.value.find((g) => g.type === 'daily' && g.status !== 'archived')
+    if (!daily) return null
+    const day = todayKey()
+    const progress = daily.history?.[day] ?? daily.progress ?? 0
+    return {
+      title: daily.title,
+      progress,
+      target: daily.target,
+      pct: Math.min(100, Math.round((progress / (daily.target || 1)) * 100)),
+      streak: daily.streak || 0
+    }
+  }
+
   return {
     goals,
     activeGoals,
@@ -125,6 +167,8 @@ export function useGoals() {
     removeGoal,
     recordWords,
     progressPct,
-    todayKey
+    todayKey,
+    heatDays,
+    todayBanner
   }
 }

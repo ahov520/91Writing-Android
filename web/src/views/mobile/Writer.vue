@@ -54,12 +54,16 @@
           ref="editorEl"
           v-model="draft"
           class="m-writer__textarea"
-          :placeholder="isStreaming ? 'AI 生成中…' : '开始写作，或点下方 AI…'"
+          :placeholder="isStreaming ? 'AI 生成中…' : '开始写作，或选中文字后点润色/扩写…'"
           :readonly="isStreaming"
           spellcheck="false"
           @input="onInput"
+          @select="captureSelection"
+          @keyup="captureSelection"
+          @mouseup="captureSelection"
+          @touchend="captureSelection"
         />
-        <div v-if="streamPreview && (aiMode === 'polish' || aiMode === 'expand')" class="m-writer__stream">
+        <div v-if="streamPreview && (aiMode === 'polish' || aiMode === 'expand' || aiMode === 'sel-polish' || aiMode === 'sel-expand')" class="m-writer__stream">
           {{ streamPreview }}
         </div>
       </div>
@@ -67,7 +71,10 @@
       <div class="m-writer__toolbar">
         <div class="m-writer__status">
           <span>{{ saveHint }}</span>
-          <span v-if="isStreaming" style="color: var(--accent-2)">生成中…点停止可中断</span>
+          <span v-if="isStreaming" style="color: var(--accent-2)">
+            生成中 {{ streamWords }} 字 · 可停止
+          </span>
+          <span v-else-if="hasSelection" style="color: var(--accent-2)">已选 {{ selectionLen }} 字</span>
           <span v-else-if="!isConfigured" style="color: var(--warning)">未配置 API</span>
           <span v-else-if="useContext" style="color: var(--success)">已带设定</span>
         </div>
@@ -85,13 +92,24 @@
               AI 续写
             </button>
             <button type="button" class="m-btn m-btn--ghost m-btn--sm" @click="runAi('polish')">
-              润色
+              {{ hasSelection ? '润色选区' : '润色' }}
             </button>
             <button type="button" class="m-btn m-btn--ghost m-btn--sm" @click="runAi('expand')">
-              扩写
+              {{ hasSelection ? '扩写选区' : '扩写' }}
             </button>
             <button type="button" class="m-btn m-btn--ghost m-btn--sm" @click="openPromptPick">
               提示词
+            </button>
+            <button type="button" class="m-btn m-btn--ghost m-btn--sm" @click="openInsertChar">
+              角色
+            </button>
+            <button
+              type="button"
+              class="m-btn m-btn--ghost m-btn--sm"
+              :disabled="!undoStack.length"
+              @click="undoLast"
+            >
+              撤销
             </button>
             <button type="button" class="m-btn m-btn--ghost m-btn--sm" @click="openPromptSheet">
               自定义
@@ -322,6 +340,31 @@
         </div>
       </div>
     </div>
+
+    <!-- insert character name -->
+    <div v-if="showInsertChar" class="m-sheet-mask" @click.self="showInsertChar = false">
+      <div class="m-sheet">
+        <div class="m-sheet__handle" />
+        <h2 class="m-sheet__title">插入角色名</h2>
+        <div v-if="!charNames.length" class="m-muted" style="padding: 12px">
+          暂无角色，请先在设定面板添加
+        </div>
+        <div class="m-chips" style="flex-wrap: wrap">
+          <button
+            v-for="name in charNames"
+            :key="name"
+            type="button"
+            class="m-chip is-active"
+            @click="insertText(name)"
+          >
+            {{ name }}
+          </button>
+        </div>
+        <button type="button" class="m-btn m-btn--ghost m-btn--block" style="margin-top: 12px" @click="goExtras">
+          管理设定
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -361,6 +404,7 @@ const { byCategory, bumpUsage, applyTemplate, load: loadPrompts } = usePrompts()
 const { options: genreOptions } = useGenres()
 const { recordWords } = useGoals()
 const { prefs, toggleReadingMode } = usePrefs()
+const contextChars = computed(() => Number(prefs.value.contextChars) || 2500)
 
 const novelId = computed(() => route.params.id)
 const extras = useNovelExtras(novelId)
@@ -380,6 +424,7 @@ const showMore = ref(false)
 const showNovelEdit = ref(false)
 const showSnapshots = ref(false)
 const showOutline = ref(false)
+const showInsertChar = ref(false)
 const outlineText = ref('')
 const outlineReplace = ref(false)
 const customPrompt = ref('')
@@ -390,6 +435,9 @@ const aiMode = ref('continue')
 const editorEl = ref(null)
 const useContext = ref(true)
 const promptCat = ref('all')
+const selStart = ref(0)
+const selEnd = ref(0)
+const undoStack = ref([])
 const novelForm = reactive({
   title: '',
   author: '',
@@ -402,6 +450,8 @@ let abortController = null
 let saveTimer = null
 let streamBuffer = ''
 let lastSavedWords = 0
+/** When polishing/expanding selection: { start, end, original } */
+let selectionOp = null
 
 const chapters = computed(() => novel.value?.chapterList || [])
 const chapter = computed(
@@ -412,6 +462,73 @@ const filteredPrompts = computed(() => byCategory(promptCat.value))
 const chapterSnapshots = computed(() =>
   snaps.list.value.filter((s) => String(s.chapterId) === String(chapterId.value))
 )
+const hasSelection = computed(() => selEnd.value > selStart.value)
+const selectionLen = computed(() => Math.max(0, selEnd.value - selStart.value))
+const streamWords = computed(() => countWords(streamBuffer || streamPreview.value || ''))
+const charNames = computed(() =>
+  (extras.characters.value || [])
+    .map((c) => c.name || c.title)
+    .filter(Boolean)
+)
+
+function captureSelection() {
+  const el = editorEl.value
+  if (!el || isStreaming.value) return
+  selStart.value = el.selectionStart ?? 0
+  selEnd.value = el.selectionEnd ?? 0
+}
+
+function pushUndo() {
+  undoStack.value.push(draft.value)
+  if (undoStack.value.length > 15) undoStack.value.shift()
+}
+
+function undoLast() {
+  if (!undoStack.value.length || isStreaming.value) return
+  draft.value = undoStack.value.pop()
+  dirty.value = true
+  scheduleSave()
+  toast.info('已撤销')
+}
+
+function openInsertChar() {
+  extras.loadAll()
+  showInsertChar.value = true
+}
+
+function insertText(text) {
+  const el = editorEl.value
+  const t = String(text || '')
+  if (!t) return
+  pushUndo()
+  const start = el ? el.selectionStart : draft.value.length
+  const end = el ? el.selectionEnd : start
+  draft.value = draft.value.slice(0, start) + t + draft.value.slice(end)
+  dirty.value = true
+  scheduleSave()
+  showInsertChar.value = false
+  toast.success(`已插入「${t}」`)
+  requestAnimationFrame(() => {
+    if (!el) return
+    const pos = start + t.length
+    el.focus()
+    el.setSelectionRange(pos, pos)
+  })
+}
+
+function prevChapterSummary() {
+  if (!prefs.value.includePrevChapter) return ''
+  const list = chapters.value
+  const idx = list.findIndex((c) => String(c.id) === String(chapterId.value))
+  if (idx <= 0) return ''
+  const prev = list[idx - 1]
+  const body = String(prev?.content || '')
+    .replace(/<[^>]*>/g, '')
+    .trim()
+  if (!body) return ''
+  const snippet = body.length > 600 ? body.slice(-600) : body
+  return `【上一章《${prev.title || ''}》摘要片段】\n${snippet}\n`
+}
 
 function refreshNovel() {
   novel.value = getById(novelId.value)
@@ -690,13 +807,15 @@ function contextBlock() {
   return s ? `\n\n${s}\n` : ''
 }
 
-function buildPrompt(mode, extra = '') {
+function buildPrompt(mode, extra = '', targetText = '') {
   const title = novel.value?.title || ''
   const genre = novel.value?.genre || ''
   const chapterTitle = chapter.value?.title || ''
   const body = draft.value || ''
-  const tail = body.slice(-2500)
+  const n = contextChars.value
+  const tail = body.slice(-n)
   const ctx = contextBlock()
+  const prev = prevChapterSummary()
 
   if (mode === 'continue') {
     return `你是一位网络小说作者。请根据上下文续写正文：
@@ -706,25 +825,25 @@ function buildPrompt(mode, extra = '') {
 ${ctx}
 作品：《${title}》 类型：${genre}
 章节：${chapterTitle}
-
+${prev}
 【上文】
 ${tail || '（开篇）'}
 
 请续写：`
   }
-  if (mode === 'polish') {
-    const sel = body.slice(-2000) || body
-    return `请润色以下正文，保持原意，只输出润色结果：\n\n【原文】\n${sel}`
+  if (mode === 'polish' || mode === 'sel-polish') {
+    const sel = targetText || body.slice(-Math.min(n, 2000)) || body
+    return `请润色以下正文，保持原意与人称，只输出润色结果：\n\n【原文】\n${sel}`
   }
-  if (mode === 'expand') {
-    const sel = body.slice(-1500) || body
-    return `请扩写以下片段（约 2 倍），只输出正文：\n\n【原文】\n${sel}`
+  if (mode === 'expand' || mode === 'sel-expand') {
+    const sel = targetText || body.slice(-Math.min(n, 1500)) || body
+    return `请扩写以下片段（约 2 倍篇幅、更细腻），只输出正文：\n\n【原文】\n${sel}`
   }
   if (mode === 'template') {
     return extra
   }
   return `你是一位网络小说作者。作品：《${title}》，章节：${chapterTitle}。
-${ctx}
+${ctx}${prev}
 用户指令：${extra}
 
 【正文末尾】
@@ -740,9 +859,24 @@ async function runAi(mode) {
     return
   }
   if (isStreaming.value) return
+  captureSelection()
   if (dirty.value) await saveNow(true)
   applyToService()
-  await streamGenerate(buildPrompt(mode), mode)
+
+  selectionOp = null
+  let type = mode
+  let target = ''
+  if ((mode === 'polish' || mode === 'expand') && hasSelection.value) {
+    target = draft.value.slice(selStart.value, selEnd.value)
+    selectionOp = {
+      start: selStart.value,
+      end: selEnd.value,
+      original: target
+    }
+    type = mode === 'polish' ? 'sel-polish' : 'sel-expand'
+  }
+  pushUndo()
+  await streamGenerate(buildPrompt(type, '', target), type)
 }
 
 async function runCustom() {
@@ -762,9 +896,12 @@ async function usePrompt(p) {
     return
   }
   await bumpUsage(p.id)
+  const n = contextChars.value
   const filled = applyTemplate(p.content, {
-    context: draft.value.slice(-2500),
-    original: draft.value.slice(-2000),
+    context: draft.value.slice(-n),
+    original: hasSelection.value
+      ? draft.value.slice(selStart.value, selEnd.value)
+      : draft.value.slice(-Math.min(n, 2000)),
     title: novel.value?.title,
     genre: novel.value?.genre,
     description: novel.value?.description,
@@ -772,11 +909,38 @@ async function usePrompt(p) {
   })
   if (dirty.value) await saveNow(true)
   applyToService()
+  pushUndo()
   const mode = p.category === 'polish' ? 'polish' : 'template'
+  selectionOp = null
   await streamGenerate(
-    mode === 'polish' ? buildPrompt('polish') : buildPrompt('template', filled + contextBlock()),
-    mode === 'polish' ? 'polish' : 'custom'
+    mode === 'polish'
+      ? buildPrompt('polish', '', hasSelection.value ? draft.value.slice(selStart.value, selEnd.value) : '')
+      : buildPrompt('template', filled + contextBlock()),
+    mode === 'polish' ? (hasSelection.value ? 'sel-polish' : 'polish') : 'custom'
   )
+}
+
+function applyGenerated(type, before, full) {
+  if (!full) return
+  if (type === 'sel-polish' || type === 'sel-expand') {
+    if (selectionOp) {
+      draft.value =
+        before.slice(0, selectionOp.start) + full + before.slice(selectionOp.end)
+    } else {
+      draft.value = full
+    }
+    dirty.value = true
+    return
+  }
+  if (type === 'polish' || type === 'expand') {
+    const n = Math.min(contextChars.value, type === 'expand' ? 1500 : 2000)
+    draft.value = before.length > n ? before.slice(0, -n) + full : full
+    dirty.value = true
+    return
+  }
+  // append modes already live-updated; ensure final
+  draft.value = before + full
+  dirty.value = true
 }
 
 async function streamGenerate(prompt, type) {
@@ -786,43 +950,43 @@ async function streamGenerate(prompt, type) {
   streamPreview.value = ''
   streamBuffer = ''
   abortController = new AbortController()
-  const mode = type === 'polish' || type === 'expand' ? 'replace-tail' : 'append'
+  const isAppend = type === 'continue' || type === 'custom' || type === 'template'
   const before = draft.value
 
   try {
     await apiService.generateTextStream(
       prompt,
       { type: type || 'generation', signal: abortController.signal },
-      (chunk, full) => {
+      (_chunk, full) => {
         streamBuffer = full
         streamPreview.value = full
-        if (mode === 'append') draft.value = before + full
+        if (isAppend) draft.value = before + full
         dirty.value = true
-        saveHint.value = '生成中…'
+        saveHint.value = `生成中 ${countWords(full)} 字…`
         if (editorEl.value) editorEl.value.scrollTop = editorEl.value.scrollHeight
       }
     )
 
-    if (type === 'polish' || type === 'expand') {
-      draft.value =
-        before.length > 2000 ? before.slice(0, -2000) + streamBuffer : streamBuffer
-      dirty.value = true
-    }
+    if (!isAppend) applyGenerated(type, before, streamBuffer)
+    else if (streamBuffer) draft.value = before + streamBuffer
+
     streamPreview.value = ''
+    selectionOp = null
     await saveNow(true)
-    toast.success('生成完成')
+    toast.success(`生成完成 · ${countWords(streamBuffer)} 字`)
   } catch (e) {
     if (e?.name === 'AbortError' || e?.message === 'GENERATION_ABORTED') {
       const partial = e.partial || streamBuffer
-      if (mode === 'append' && partial) {
-        draft.value = before + partial
+      if (partial) {
+        if (isAppend) draft.value = before + partial
+        else applyGenerated(type, before, partial)
         dirty.value = true
       }
       await saveNow(true)
-      toast.info('已停止，已保留已生成内容')
+      toast.info(`已停止 · 保留 ${countWords(partial)} 字`)
     } else {
       console.error(e)
-      if (streamBuffer && mode === 'append') await saveNow(true)
+      if (streamBuffer && isAppend) await saveNow(true)
       toast.error(e?.message || '生成失败')
     }
   } finally {
@@ -830,6 +994,7 @@ async function streamGenerate(prompt, type) {
     keepScreenOn(false)
     abortController = null
     streamPreview.value = ''
+    selectionOp = null
   }
 }
 

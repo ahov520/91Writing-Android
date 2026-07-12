@@ -1,14 +1,18 @@
 /**
  * UI prefs — localStorage key writing91_prefs
  */
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
 const KEY = 'writing91_prefs'
 const prefs = ref({
-  theme: 'dark', // dark | light
+  theme: 'dark',
   fontSize: 17,
   lineHeight: 1.75,
-  readingMode: false
+  readingMode: false,
+  /** chars of chapter body sent as AI context tail */
+  contextChars: 2500,
+  /** include previous chapter summary when continuing */
+  includePrevChapter: true
 })
 let loaded = false
 
@@ -37,8 +41,14 @@ function applyTheme() {
   if (typeof document === 'undefined') return
   const t = prefs.value.theme === 'light' ? 'light' : 'dark'
   document.documentElement.setAttribute('data-theme', t)
-  document.documentElement.style.setProperty('--editor-font-size', `${prefs.value.fontSize || 17}px`)
-  document.documentElement.style.setProperty('--editor-line-height', String(prefs.value.lineHeight || 1.75))
+  document.documentElement.style.setProperty(
+    '--editor-font-size',
+    `${prefs.value.fontSize || 17}px`
+  )
+  document.documentElement.style.setProperty(
+    '--editor-line-height',
+    String(prefs.value.lineHeight || 1.75)
+  )
 }
 
 export function usePrefs() {
@@ -59,6 +69,16 @@ export function usePrefs() {
     save()
   }
 
+  function setContextChars(n) {
+    prefs.value.contextChars = Math.min(12000, Math.max(800, Number(n) || 2500))
+    save()
+  }
+
+  function setIncludePrevChapter(on) {
+    prefs.value.includePrevChapter = !!on
+    save()
+  }
+
   function toggleReadingMode() {
     prefs.value.readingMode = !prefs.value.readingMode
     save()
@@ -69,13 +89,14 @@ export function usePrefs() {
     setTheme,
     setFontSize,
     setLineHeight,
+    setContextChars,
+    setIncludePrevChapter,
     toggleReadingMode,
     applyTheme,
     load
   }
 }
 
-// apply early if imported from main
 if (typeof window !== 'undefined') {
   load()
 }

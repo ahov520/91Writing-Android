@@ -22,6 +22,28 @@
       </div>
     </div>
 
+    <div class="m-section-title">自动备份</div>
+    <div class="m-card" style="margin-bottom: 16px">
+      <p class="m-hint" style="margin: 0 0 8px">
+        每日首次打开书架时自动备份作品到本机。
+      </p>
+      <p v-if="autoMeta" class="m-muted" style="font-size: 0.85rem; margin: 0 0 10px">
+        最近：{{ autoMeta.date }} · {{ autoMeta.count }} 部
+      </p>
+      <p v-else class="m-muted" style="font-size: 0.85rem; margin: 0 0 10px">尚未生成自动备份</p>
+      <div class="m-btn-row">
+        <button type="button" class="m-btn m-btn--ghost" :disabled="busy" @click="doAutoNow">立即备份</button>
+        <button
+          type="button"
+          class="m-btn m-btn--primary"
+          :disabled="busy || !autoMeta"
+          @click="restoreAuto"
+        >
+          从自动备份恢复
+        </button>
+      </div>
+    </div>
+
     <div class="m-section-title">导出</div>
     <div class="m-card" style="margin-bottom: 16px">
       <p class="m-hint" style="margin: 0 0 12px">
@@ -65,6 +87,18 @@
           选择 JSON 导入
         </button>
       </div>
+      <div v-if="pendingImport" class="m-import-preview">
+        <strong>导入预览</strong>
+        <p class="m-hint" style="margin: 6px 0">
+          共 {{ pendingImport.count }} 部 · 示例：{{ pendingImport.sample.join('、') || '—' }}
+        </p>
+        <div class="m-btn-row">
+          <button type="button" class="m-btn m-btn--ghost" @click="pendingImport = null">取消</button>
+          <button type="button" class="m-btn m-btn--primary" :disabled="busy" @click="confirmImport">
+            确认合并导入
+          </button>
+        </div>
+      </div>
       <p v-if="lastMsg" class="m-hint" style="margin-top: 12px">{{ lastMsg }}</p>
     </div>
 
@@ -84,12 +118,19 @@
 import { computed, onMounted, ref } from 'vue'
 import { useNovels } from '../../composables/useNovels.js'
 import { flushStorage } from '../../services/storage.js'
+import {
+  getAutoBackupMeta,
+  getAutoBackupPayload,
+  runDailyAutoBackup
+} from '../../composables/useAutoBackup.js'
 import toast from '../../services/toast.js'
 
 const { novels, totalWords, load, replaceAll } = useNovels()
 const busy = ref(false)
 const lastMsg = ref('')
 const fileInput = ref(null)
+const autoMeta = ref(null)
+const pendingImport = ref(null)
 
 const totalChapters = computed(() =>
   novels.value.reduce((s, n) => s + (n.chapterList?.length || 0), 0)
@@ -241,6 +282,65 @@ function pickFile() {
   fileInput.value?.click()
 }
 
+async function doAutoNow() {
+  busy.value = true
+  try {
+    await load()
+    // force new backup by clearing date meta trick — write via run with novels
+    localStorage.removeItem('auto_backup_meta')
+    autoMeta.value = await runDailyAutoBackup(novels.value)
+    lastMsg.value = '已写入今日自动备份'
+    toast.success('自动备份完成')
+  } catch {
+    toast.error('备份失败')
+  } finally {
+    busy.value = false
+  }
+}
+
+async function restoreAuto() {
+  const payload = getAutoBackupPayload()
+  if (!payload?.novels) {
+    toast.warning('没有自动备份')
+    return
+  }
+  pendingImport.value = {
+    count: payload.novels.length,
+    sample: payload.novels.slice(0, 5).map((n) => n.title || '未命名'),
+    novels: payload.novels,
+    source: 'auto'
+  }
+}
+
+async function confirmImport() {
+  if (!pendingImport.value?.novels) return
+  busy.value = true
+  try {
+    await load()
+    const map = new Map(novels.value.map((n) => [String(n.id), n]))
+    let added = 0
+    let updated = 0
+    for (const n of pendingImport.value.novels) {
+      if (!n) continue
+      if (n.id && map.has(String(n.id))) {
+        map.set(String(n.id), n)
+        updated++
+      } else {
+        map.set(String(n.id || `imp_${added}`), n)
+        added++
+      }
+    }
+    await replaceAll([...map.values()])
+    lastMsg.value = `导入完成：写入 ${added}，覆盖 ${updated}`
+    pendingImport.value = null
+    toast.success('导入成功')
+  } catch (e) {
+    toast.error(e?.message || '导入失败')
+  } finally {
+    busy.value = false
+  }
+}
+
 async function onFile(ev) {
   const file = ev.target.files?.[0]
   ev.target.value = ''
@@ -304,28 +404,14 @@ async function onFile(ev) {
       throw new Error('无法识别的备份格式')
     }
 
-    await load()
-    const map = new Map(novels.value.map((n) => [String(n.id), n]))
-    let added = 0
-    let updated = 0
-    for (const n of incoming) {
-      if (!n || !n.id) {
-        // assign will happen in replaceAll normalize — treat as new
-        map.set(`import_${Date.now()}_${added}`, { ...n, id: undefined })
-        added++
-        continue
-      }
-      if (map.has(String(n.id))) {
-        map.set(String(n.id), n)
-        updated++
-      } else {
-        map.set(String(n.id), n)
-        added++
-      }
+    pendingImport.value = {
+      count: incoming.length,
+      sample: incoming.slice(0, 5).map((n) => n?.title || '未命名'),
+      novels: incoming,
+      source: 'file'
     }
-    await replaceAll([...map.values()])
-    lastMsg.value = `导入完成：新增/写入 ${added}，覆盖 ${updated}`
-    toast.success('导入成功')
+    lastMsg.value = `待确认：${incoming.length} 部作品`
+    return
   } catch (e) {
     console.error(e)
     lastMsg.value = '导入失败：' + (e.message || e)
@@ -350,5 +436,11 @@ async function clearAll() {
   }
 }
 
-onMounted(() => load())
+onMounted(async () => {
+  await load()
+  autoMeta.value = getAutoBackupMeta()
+  runDailyAutoBackup(novels.value).then((m) => {
+    if (m) autoMeta.value = m
+  })
+})
 </script>

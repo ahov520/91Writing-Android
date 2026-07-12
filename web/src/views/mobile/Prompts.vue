@@ -5,8 +5,13 @@
         <h1>提示词库</h1>
         <p>{{ prompts.length }} 条模板</p>
       </div>
-      <button type="button" class="m-btn m-btn--primary m-btn--sm" @click="openCreate">新建</button>
+      <div class="m-btn-row" style="flex: 0; gap: 6px">
+        <button type="button" class="m-btn m-btn--ghost m-btn--sm" @click="exportPrompts">导出</button>
+        <button type="button" class="m-btn m-btn--ghost m-btn--sm" @click="importInput?.click()">导入</button>
+        <button type="button" class="m-btn m-btn--primary m-btn--sm" @click="openCreate">新建</button>
+      </div>
     </header>
+    <input ref="importInput" type="file" accept="application/json,.json" style="display: none" @change="onImport" />
 
     <div class="m-chips">
       <button
@@ -72,8 +77,20 @@
           <input v-model="form.description" class="m-input" />
         </div>
         <div class="m-field">
-          <label>内容（可用 {'{'}上文{'}'} {'{'}书名{'}'} 等变量）</label>
-          <textarea v-model="form.content" class="m-textarea" rows="6" />
+          <label>内容</label>
+          <div class="m-chips" style="padding-bottom: 8px">
+            <button
+              v-for="v in vars"
+              :key="v"
+              type="button"
+              class="m-chip"
+              @click="insertVar(v)"
+            >
+              {{ '{' + v + '}' }}
+            </button>
+          </div>
+          <textarea ref="contentEl" v-model="form.content" class="m-textarea" rows="6" />
+          <span class="m-hint">点上方变量插入到光标处</span>
         </div>
         <div class="m-btn-row">
           <button type="button" class="m-btn m-btn--ghost" @click="sheet = false">取消</button>
@@ -88,10 +105,14 @@
 import { computed, reactive, ref } from 'vue'
 import { usePrompts, PROMPT_CATEGORIES } from '../../composables/usePrompts.js'
 import toast from '../../services/toast.js'
+import { downloadJson } from '../../utils/download.js'
 
-const { prompts, byCategory, addPrompt, updatePrompt, removePrompt } = usePrompts()
+const { prompts, byCategory, addPrompt, updatePrompt, removePrompt, load, save: persist } = usePrompts()
 const cat = ref('all')
 const sheet = ref(false)
+const contentEl = ref(null)
+const importInput = ref(null)
+const vars = ['上文', '原文', '书名', '类型', '简介', '章节']
 const form = reactive({
   id: '',
   title: '',
@@ -104,6 +125,55 @@ const filtered = computed(() => byCategory(cat.value))
 
 function catName(key) {
   return PROMPT_CATEGORIES.find((c) => c.key === key)?.name || key
+}
+
+function insertVar(name) {
+  const token = `{${name}}`
+  const el = contentEl.value
+  if (el && typeof el.selectionStart === 'number') {
+    const s = el.selectionStart
+    const e = el.selectionEnd
+    form.content = form.content.slice(0, s) + token + form.content.slice(e)
+    requestAnimationFrame(() => {
+      el.focus()
+      const p = s + token.length
+      el.setSelectionRange(p, p)
+    })
+  } else {
+    form.content += token
+  }
+}
+
+function exportPrompts() {
+  downloadJson('91writing-prompts.json', {
+    type: 'writing91-prompts',
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    prompts: prompts.value
+  })
+  toast.success('已导出提示词')
+}
+
+function onImport(ev) {
+  const file = ev.target.files?.[0]
+  ev.target.value = ''
+  if (!file) return
+  file.text().then(async (text) => {
+    try {
+      const json = JSON.parse(text)
+      const list = Array.isArray(json.prompts)
+        ? json.prompts
+        : Array.isArray(json)
+          ? json
+          : null
+      if (!list) throw new Error('无法识别格式')
+      localStorage.setItem('prompts', JSON.stringify(list))
+      load()
+      toast.success(`已导入 ${list.length} 条`)
+    } catch (e) {
+      toast.error(e?.message || '导入失败')
+    }
+  })
 }
 
 function openCreate() {

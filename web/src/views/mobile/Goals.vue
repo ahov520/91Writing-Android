@@ -8,6 +8,22 @@
       <button type="button" class="m-btn m-btn--primary m-btn--sm" @click="openCreate">新建</button>
     </header>
 
+    <div class="m-section-title">近 14 日热力</div>
+    <div class="m-card" style="margin-bottom: 16px">
+      <div class="m-heat">
+        <div
+          v-for="d in heat"
+          :key="d.date"
+          class="m-heat__cell"
+          :class="['m-heat__l' + d.level, { 'is-today': d.isToday }]"
+          :title="d.date + ': ' + d.words + ' 字'"
+        >
+          <span class="m-heat__label">{{ d.label }}</span>
+        </div>
+      </div>
+      <p class="m-hint" style="margin: 10px 0 0">颜色越深表示当日写得越多（相对每日目标）</p>
+    </div>
+
     <div v-if="!goals.length" class="m-empty">
       <div class="m-empty__icon">🎯</div>
       <h3>还没有目标</h3>
@@ -67,11 +83,13 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useGoals } from '../../composables/useGoals.js'
 import toast from '../../services/toast.js'
 
-const { goals, addGoal, updateGoal, removeGoal, progressPct, todayKey } = useGoals()
+const { goals, addGoal, updateGoal, removeGoal, progressPct, todayKey, heatDays, load } = useGoals()
+const heat = computed(() => heatDays(14))
+load()
 const sheet = ref(false)
 const form = reactive({ id: '', title: '', type: 'daily', target: 2000 })
 
