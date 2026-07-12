@@ -1,56 +1,66 @@
 <template>
-  <div class="settings-page">
+  <div class="settings-page ui-page anim-fade-up">
+    <div class="ui-page-hero page-header">
+      <div class="header-content">
+        <h1>⚙️ 系统设置</h1>
+        <p>API、备份与本地数据管理 · 数据保存在本机</p>
+      </div>
+      <div class="header-actions ui-page-hero__actions">
+        <el-button type="primary" class="btn-brand" @click="activeTab = 'api'">
+          API 配置
+        </el-button>
+        <el-button @click="activeTab = 'data'">数据管理</el-button>
+      </div>
+    </div>
 
     <!-- 设置内容 -->
     <div class="settings-content">
       <el-tabs v-model="activeTab" class="settings-tabs">
         <!-- API配置 -->
         <el-tab-pane label="API配置" name="api">
-          <el-card shadow="never">
+          <el-card shadow="never" class="ui-surface">
             <template #header>
               <div class="card-header">
-                <span>🔑 AI模型API配置</span>
-                <el-button type="primary" @click="testAllConnections">测试所有连接</el-button>
+                <span class="ui-section-title" style="margin:0">AI 模型 API</span>
+                <el-button type="primary" @click="testAllConnections">测试连接</el-button>
               </div>
             </template>
-            
+
             <ApiConfig />
           </el-card>
         </el-tab-pane>
 
-        
-
         <!-- 数据管理 -->
         <el-tab-pane label="数据管理" name="data">
-          <el-card shadow="never">
+          <el-card shadow="never" class="ui-surface">
             <template #header>
-              <span>💾 数据备份与恢复</span>
+              <span class="ui-section-title" style="margin:0">数据备份与恢复</span>
             </template>
-            
+
             <div class="data-management">
               <!-- 数据概览 -->
               <div class="data-overview">
-                <h3>📊 数据概览</h3>
-                <div class="data-stats">
-                  <div class="stat-item">
-                    <div class="stat-label">小说作品</div>
-                    <div class="stat-value">{{ dataStats.novels }}部</div>
+                <h3 class="ui-section-title">数据概览</h3>
+                <div class="data-stats ui-stat-row">
+                  <div class="stat-item ui-stat">
+                    <div class="stat-value ui-stat__value">{{ dataStats.novels }}</div>
+                    <div class="stat-label ui-stat__label">小说作品</div>
                   </div>
-                  <div class="stat-item">
-                    <div class="stat-label">提示词库</div>
-                    <div class="stat-value">{{ dataStats.prompts }}条</div>
+                  <div class="stat-item ui-stat">
+                    <div class="stat-value ui-stat__value">{{ dataStats.prompts }}</div>
+                    <div class="stat-label ui-stat__label">提示词</div>
                   </div>
-                  <div class="stat-item">
-                    <div class="stat-label">小说类型</div>
-                    <div class="stat-value">{{ dataStats.genres }}种</div>
+                  <div class="stat-item ui-stat">
+                    <div class="stat-value ui-stat__value">{{ dataStats.genres }}</div>
+                    <div class="stat-label ui-stat__label">类型</div>
                   </div>
-                  <div class="stat-item">
-                    <div class="stat-label">写作目标</div>
-                    <div class="stat-value">{{ dataStats.goals }}个</div>
+                  <div class="stat-item ui-stat">
+                    <div class="stat-value ui-stat__value">{{ dataStats.goals }}</div>
+                    <div class="stat-label ui-stat__label">写作目标</div>
                   </div>
-                  <div class="stat-item">
-                    <div class="stat-label">数据大小</div>
-                    <div class="stat-value">{{ dataStats.size }}</div>
+                  <div class="stat-item ui-stat">
+                    <div class="stat-value ui-stat__value">{{ dataStats.size }}</div>
+                    <div class="stat-label ui-stat__label">数据大小</div>
                   </div>
                 </div>
               </div>
@@ -649,21 +659,50 @@ onMounted(() => {
   padding: 0;
 }
 
-
 .settings-content {
-  background: rgba(255, 255, 255, 0.88);
-  border-radius: 8px;
+  background: transparent;
+  border-radius: var(--radius-md);
 }
 
 .settings-tabs {
-  min-height: 600px;
+  min-height: auto;
+}
+
+.settings-tabs :deep(.el-tabs__header) {
+  margin-bottom: 14px;
+}
+
+.settings-tabs :deep(.el-tabs__item) {
+  min-height: 44px;
+  font-weight: 700;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-weight: 700;
+}
+
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.data-actions .el-button {
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  .data-actions .el-button {
+    flex: 1 1 calc(50% - 10px);
+  }
+  .settings-tabs :deep(.el-tabs__nav-scroll) {
+    overflow-x: auto;
+  }
 }
 
 .data-management {

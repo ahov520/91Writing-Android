@@ -12855,7 +12855,7 @@ ${customPrompt}`
   align-content: start;
 }
 
-/* P5: keyboard-aware height for Android / mobile shell */
+/* P5 + Goal UI: keyboard-aware mobile writer shell */
 .writer-container {
   height: var(--app-vh, 100dvh);
   max-height: var(--app-vh, 100dvh);
@@ -12866,8 +12866,130 @@ html[data-keyboard="open"] .writer-container {
   max-height: var(--app-vh, 100dvh);
 }
 .writer-container.is-mobile .editor-wrapper :deep(.w-e-text-container) {
-  /* keep caret visible above soft keyboard */
   scroll-padding-bottom: 24px;
+}
+
+/* Mobile writer layout: no overlap, stack chrome, full editor */
+.writer-container.is-mobile {
+  height: var(--app-vh, 100dvh);
+  max-height: var(--app-vh, 100dvh);
+  overflow: hidden;
+}
+.writer-container.is-mobile .title-bar {
+  height: 52px;
+  min-height: 52px;
+  padding: 0 10px;
+  gap: 8px;
+}
+.writer-container.is-mobile .title-left {
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.writer-container.is-mobile .novel-title {
+  font-size: 14px;
+  max-width: 42vw;
+}
+.writer-container.is-mobile .writer-back-btn,
+.writer-container.is-mobile .panel-toggle-btn,
+.writer-container.is-mobile .reading-toggle-btn {
+  min-height: 40px;
+  min-width: 40px;
+}
+.writer-container.is-mobile .tabs-bar {
+  padding: 0 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.writer-container.is-mobile .main-tabs :deep(.el-tabs__nav-wrap) {
+  overflow: auto;
+}
+.writer-container.is-mobile .main-tabs :deep(.el-tabs__item) {
+  padding: 0 12px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 13px;
+}
+.writer-container.is-mobile .main-content {
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.writer-container.is-mobile .left-panel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(86vw, 320px);
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 12px 0 32px rgba(15, 23, 42, 0.18);
+  transform: translateX(-105%);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.writer-container.is-mobile .left-panel.open {
+  transform: translateX(0);
+}
+.writer-container.is-mobile .panel-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+}
+.writer-container.is-mobile .editor-panel {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.writer-container.is-mobile .editor-header {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+}
+.writer-container.is-mobile .editor-header-right {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.writer-container.is-mobile .editor-header-right .el-button {
+  min-height: 40px;
+}
+.writer-container.is-mobile .editor-container,
+.writer-container.is-mobile .editor-wrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.writer-container.is-mobile .editor-wrapper :deep(.w-e-toolbar) {
+  flex-wrap: wrap;
+  row-gap: 4px;
+  max-height: none;
+  overflow: auto;
+}
+.writer-container.is-mobile .editor-wrapper :deep(.w-e-text-container) {
+  flex: 1;
+  min-height: 180px !important;
+}
+html.keyboard-open .writer-container.is-mobile .tabs-bar {
+  display: none;
+}
+html.keyboard-open .writer-container.is-mobile .editor-header {
+  display: none;
+}
+html.keyboard-open .writer-container.is-mobile .editor-wrapper :deep(.w-e-toolbar) {
+  max-height: 44px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
 }
 
 </style>

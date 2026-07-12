@@ -1068,19 +1068,52 @@ onUnmounted(() => {
 
 .content {
   flex: 1;
-  padding: 22px 24px 28px;
+  min-height: 0;
+  padding: 18px 20px 24px;
   overflow-y: auto;
   background: transparent;
   transition: padding var(--dur) var(--ease-out);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 .content-inner {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .content-mobile {
-  padding: 16px 14px 80px;
+  padding: 12px 10px calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.dashboard-container.is-writer-route .content,
+.dashboard-container.is-writer-route .content-mobile {
+  padding: 0 !important;
+}
+.dashboard-container.is-writer-route .content-inner {
+  max-width: none;
+  height: 100%;
+}
+.dashboard-container.is-writer-route .header {
+  display: none; /* writer has own title bar */
+}
+
+.icon-btn {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 12px !important;
+}
+
+.page-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1e1b4b;
+}
+.page-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 /* ---------- Mobile drawers ---------- */

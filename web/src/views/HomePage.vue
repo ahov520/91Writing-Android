@@ -1,7 +1,7 @@
 <template>
-  <div class="home-page">
+  <div class="home-page ui-page anim-fade-up">
     <!-- Hero 欢迎区 -->
-    <section class="welcome-section anim-fade-up">
+    <section class="welcome-section">
       <div class="welcome-card">
         <div class="welcome-orb orb-a" aria-hidden="true"></div>
         <div class="welcome-orb orb-b" aria-hidden="true"></div>
@@ -1410,6 +1410,34 @@ onUnmounted(() => {
 /* Round 1219 */
 .home-page {
   -webkit-font-smoothing: antialiased;
+}
+
+/* Goal UI: home page rhythm */
+.home-page.ui-page {
+  gap: 14px;
+}
+.home-page .welcome-actions {
+  flex-wrap: wrap;
+}
+.home-page .action-item {
+  min-height: 72px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  background: linear-gradient(180deg, #fff, #faf8ff);
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+  cursor: pointer;
+  text-align: left;
+}
+.home-page .action-item:active {
+  transform: scale(0.98);
+}
+@media (max-width: 768px) {
+  .home-page .welcome-actions .el-button {
+    min-height: 48px;
+  }
+  .home-page .stat-card {
+    min-height: 88px;
+  }
 }
 
 </style>

@@ -1,12 +1,12 @@
 <template>
-  <div class="novel-management">
+  <div class="novel-management ui-page anim-fade-up">
     <!-- 页面头部 -->
-    <div class="page-header">
+    <div class="ui-page-hero page-header">
       <div class="header-content">
         <h1>📚 小说列表</h1>
-        <p>查看和管理您的小说作品</p>
+        <p>管理作品库 · {{ novels.length }} 部 · 支持筛选、导出与继续写作</p>
       </div>
-      <div class="header-actions">
+      <div class="header-actions ui-page-hero__actions">
         <el-button 
           v-if="novels.length > 0" 
           @click="exportAllNovels"
@@ -15,7 +15,7 @@
           <el-icon><Download /></el-icon>
           导出列表
         </el-button>
-        <el-button type="primary" @click="showCreateDialog = true">
+        <el-button type="primary" class="btn-brand" @click="showCreateDialog = true">
           <el-icon><Plus /></el-icon>
           创建新小说
         </el-button>
@@ -23,59 +23,57 @@
     </div>
 
     <!-- 筛选和搜索 -->
-    <div class="filter-section">
-      <el-card shadow="never">
-        <div class="filter-content">
-          <div class="filter-left">
-            <el-select v-model="statusFilter" placeholder="状态筛选" style="width: 120px;">
-              <el-option label="全部" value="all" />
-              <el-option label="创作中" value="writing" />
-              <el-option label="已完成" value="completed" />
-              <el-option label="已暂停" value="paused" />
-            </el-select>
-            
-            <el-select v-model="genreFilter" placeholder="类型筛选" style="width: 120px;">
-              <el-option label="全部类型" value="all" />
-              <el-option 
-                v-for="(preset, key) in genrePresets" 
-                :key="key"
-                :label="preset.name" 
-                :value="key"
-              />
-            </el-select>
-            
-            <el-select v-model="sortBy" placeholder="排序方式" style="width: 140px;">
-              <el-option label="最近更新" value="updated" />
-              <el-option label="创建时间" value="created" />
-              <el-option label="字数" value="wordCount" />
-              <el-option label="章节数" value="chapters" />
-            </el-select>
-          </div>
-          
-          <div class="filter-right">
-            <el-input
-              v-model="searchKeyword"
-              placeholder="搜索小说标题、简介..."
-              clearable
-              style="width: 300px;"
-            >
-              <template #prefix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-          </div>
+    <div class="filter-section ui-toolbar">
+      <div class="filter-content" style="width:100%;border:none;padding:0;box-shadow:none;background:transparent;">
+        <div class="filter-left ui-toolbar__left">
+          <el-select v-model="statusFilter" placeholder="状态" style="width: 120px;">
+            <el-option label="全部状态" value="all" />
+            <el-option label="创作中" value="writing" />
+            <el-option label="已完成" value="completed" />
+            <el-option label="已暂停" value="paused" />
+          </el-select>
+
+          <el-select v-model="genreFilter" placeholder="类型" style="width: 120px;">
+            <el-option label="全部类型" value="all" />
+            <el-option 
+              v-for="(preset, key) in genrePresets" 
+              :key="key"
+              :label="preset.name" 
+              :value="key"
+            />
+          </el-select>
+
+          <el-select v-model="sortBy" placeholder="排序" style="width: 140px;">
+            <el-option label="最近更新" value="updated" />
+            <el-option label="创建时间" value="created" />
+            <el-option label="字数" value="wordCount" />
+            <el-option label="章节数" value="chapters" />
+          </el-select>
         </div>
-      </el-card>
+
+        <div class="filter-right ui-toolbar__right">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索标题、简介..."
+            clearable
+            style="width: 280px;"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+        </div>
+      </div>
     </div>
 
     <!-- 小说列表 -->
-    <div class="novels-grid">
+    <div class="novels-grid ui-card-grid">
       <div 
         v-for="novel in filteredNovels" 
         :key="novel.id"
         class="novel-card"
       >
-        <el-card shadow="hover" class="novel-item">
+        <el-card shadow="hover" class="novel-item ui-surface">
           <div class="novel-cover">
             <img 
               :src="novel.cover || '/default-cover.jpg'" 
@@ -165,9 +163,9 @@
     </div>
 
     <!-- 空状态 -->
-    <div v-if="filteredNovels.length === 0" class="empty-state">
-      <el-empty description="暂无小说作品">
-        <el-button type="primary" @click="showCreateDialog = true">创建第一部小说</el-button>
+    <div v-if="filteredNovels.length === 0" class="empty-state ui-empty ui-surface">
+      <el-empty description="暂无匹配的小说，试试调整筛选或创建新作">
+        <el-button type="primary" class="btn-brand" @click="showCreateDialog = true">创建第一部小说</el-button>
       </el-empty>
     </div>
 
@@ -1648,9 +1646,39 @@ onMounted(() => {
 
 .novels-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
   margin-bottom: 20px;
+}
+
+.novel-management.ui-page .filter-section.ui-toolbar {
+  margin-bottom: 4px;
+}
+
+.novel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 16px;
+  margin-top: auto;
+}
+
+.novel-actions .el-button {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .novels-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .novel-cover {
+    height: 160px;
+  }
+  .novel-actions .el-button {
+    min-height: 44px;
+  }
 }
 
 .novel-card {
