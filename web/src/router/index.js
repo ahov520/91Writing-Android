@@ -13,6 +13,18 @@ const routes = [
         meta: { title: '书架' }
       },
       {
+        path: 'tools',
+        name: 'Tools',
+        component: () => import('../views/mobile/Tools.vue'),
+        meta: { title: '创作工具' }
+      },
+      {
+        path: 'more',
+        name: 'More',
+        component: () => import('../views/mobile/More.vue'),
+        meta: { title: '更多' }
+      },
+      {
         path: 'backup',
         name: 'Backup',
         component: () => import('../views/mobile/Backup.vue'),
@@ -25,14 +37,43 @@ const routes = [
         meta: { title: '设置' }
       },
       {
+        path: 'prompts',
+        name: 'Prompts',
+        component: () => import('../views/mobile/Prompts.vue'),
+        meta: { title: '提示词' }
+      },
+      {
+        path: 'goals',
+        name: 'Goals',
+        component: () => import('../views/mobile/Goals.vue'),
+        meta: { title: '写作目标' }
+      },
+      {
+        path: 'genres',
+        name: 'Genres',
+        component: () => import('../views/mobile/Genres.vue'),
+        meta: { title: '类型' }
+      },
+      {
+        path: 'billing',
+        name: 'Billing',
+        component: () => import('../views/mobile/Billing.vue'),
+        meta: { title: '计费' }
+      },
+      {
         path: 'write/:id',
         name: 'Writer',
         component: () => import('../views/mobile/Writer.vue'),
         meta: { title: '写作', immersive: true }
+      },
+      {
+        path: 'extras/:id',
+        name: 'Extras',
+        component: () => import('../views/mobile/Extras.vue'),
+        meta: { title: '设定', immersive: true }
       }
     ]
   },
-  // legacy paths → new UI
   { path: '/novels', redirect: '/' },
   { path: '/writer', redirect: '/' },
   { path: '/config', redirect: '/settings' },

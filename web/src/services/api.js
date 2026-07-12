@@ -256,14 +256,28 @@ class APIService {
     
     let fullContent = ''
     let hasError = false
+
+    // Support external abort (stop button) + 5min timeout
+    const streamController = new AbortController()
+    const timeoutId = setTimeout(() => {
+      try { streamController.abort() } catch (_) { /* ignore */ }
+    }, 300000)
+    if (options.signal) {
+      if (options.signal.aborted) {
+        clearTimeout(timeoutId)
+        throw new DOMException('Aborted', 'AbortError')
+      }
+      options.signal.addEventListener('abort', () => {
+        try { streamController.abort() } catch (_) { /* ignore */ }
+      }, { once: true })
+    }
     
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestBody),
-        // 增加超时设置，避免长时间等待导致的截断
-        signal: AbortSignal.timeout(300000) // 5分钟超时，给更多时间生成长内容
+        signal: streamController.signal
       })
       
       console.log('API响应状态:', response.status) // 调试日志
@@ -467,9 +481,22 @@ class APIService {
         status: 'success'
       })
 
+      clearTimeout(timeoutId)
       return fullContent
     } catch (error) {
+      clearTimeout(timeoutId)
       console.error('流式生成错误:', error)
+      const aborted =
+        error?.name === 'AbortError' ||
+        error?.message?.includes('aborted') ||
+        options.signal?.aborted
+      if (aborted) {
+        // Return partial content so caller can keep it
+        const abortErr = new Error('GENERATION_ABORTED')
+        abortErr.name = 'AbortError'
+        abortErr.partial = fullContent
+        throw abortErr
+      }
       // 只有在发生错误时才记录失败调用
       if (hasError) {
         billingService.recordAPICall({

@@ -883,3 +883,133 @@ html.keyboard-open .app-toast {
 .m-fab:active {
   transform: scale(0.96);
 }
+
+/* chips */
+.m-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+}
+
+.m-chip {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.m-chip.is-active {
+  background: var(--accent-soft);
+  border-color: var(--border-strong);
+  color: var(--accent-2);
+}
+
+.m-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+
+.m-progress__bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+  transition: width 0.25s ease;
+}
+
+.m-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.m-action-row:last-child {
+  border-bottom: 0;
+}
+
+.m-action-row:active {
+  background: var(--accent-soft);
+}
+
+.m-list-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.m-list-actions .m-action-row {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  background: var(--bg-card);
+}
+
+.m-chapter-item {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  margin-bottom: 4px;
+  background: transparent;
+}
+
+.m-chapter-item.is-active {
+  background: var(--accent-soft);
+  border-color: var(--border-strong);
+}
+
+.m-chapter-item__main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 12px;
+  cursor: pointer;
+}
+
+.m-chapter-item__ops {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 6px 4px 0;
+}
+
+.m-chip-btn {
+  min-width: 28px;
+  min-height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0 6px;
+}
+
+.m-chip-btn:disabled {
+  opacity: 0.35;
+}

@@ -113,16 +113,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  useNovels,
-  GENRES,
-  genreName,
-  statusLabel
-} from '../../composables/useNovels.js'
+import { useNovels, statusLabel } from '../../composables/useNovels.js'
+import { useGenres } from '../../composables/useGenres.js'
 import toast from '../../services/toast.js'
 
 const router = useRouter()
 const { novels, sorted, totalWords, load, createNovel } = useNovels()
+const { options: GENRES, nameOf: genreName, bumpUsage } = useGenres()
 const keyword = ref('')
 const showCreate = ref(false)
 const form = reactive({ title: '', genre: 'fantasy', description: '' })
@@ -164,6 +161,11 @@ async function create() {
       genre: form.genre,
       description: form.description.trim()
     })
+    try {
+      await bumpUsage(form.genre)
+    } catch {
+      /* ignore */
+    }
     showCreate.value = false
     toast.success('已创建')
     router.push(`/write/${novel.id}`)

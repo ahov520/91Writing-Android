@@ -176,6 +176,57 @@ export function useNovels() {
     await updateNovel(novelId, { chapterList: list })
   }
 
+  async function reorderChapters(novelId, fromIndex, toIndex) {
+    const novel = getById(novelId)
+    if (!novel) return
+    const list = [...(novel.chapterList || [])]
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= list.length ||
+      toIndex >= list.length ||
+      fromIndex === toIndex
+    ) {
+      return
+    }
+    const [item] = list.splice(fromIndex, 1)
+    list.splice(toIndex, 0, item)
+    await updateNovel(novelId, { chapterList: list })
+  }
+
+  async function moveChapter(novelId, chapterId, direction) {
+    const novel = getById(novelId)
+    if (!novel) return
+    const list = novel.chapterList || []
+    const idx = list.findIndex((c) => String(c.id) === String(chapterId))
+    if (idx < 0) return
+    const to = direction === 'up' ? idx - 1 : idx + 1
+    await reorderChapters(novelId, idx, to)
+  }
+
+  function exportNovelText(novel) {
+    if (!novel) return ''
+    const lines = []
+    lines.push(`《${novel.title || '未命名'}》`)
+    lines.push('='.repeat(40))
+    if (novel.author) lines.push(`作者：${novel.author}`)
+    if (novel.description) lines.push(`\n简介：\n${stripHtml(novel.description)}`)
+    lines.push('')
+    ;(novel.chapterList || []).forEach((c, i) => {
+      lines.push(`第${i + 1}章 ${c.title || ''}`)
+      lines.push('-'.repeat(24))
+      lines.push(stripHtml(c.content || '') || '（空）')
+      lines.push('')
+    })
+    return lines.join('\n')
+  }
+
+  function exportChapterText(novel, chapter) {
+    const title = novel?.title || '未命名'
+    const ct = chapter?.title || '章节'
+    return `《${title}》\n${ct}\n\n${stripHtml(chapter?.content || '')}`
+  }
+
   async function replaceAll(list) {
     novels.value = (Array.isArray(list) ? list : []).map(normalizeNovel)
     await save()
@@ -205,9 +256,28 @@ export function useNovels() {
     addChapter,
     updateChapter,
     deleteChapter,
+    reorderChapters,
+    moveChapter,
+    exportNovelText,
+    exportChapterText,
     replaceAll,
-    countWords
+    countWords,
+    stripHtml
   }
+}
+
+function stripHtml(html) {
+  if (!html) return ''
+  return String(html)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 export const GENRES = [

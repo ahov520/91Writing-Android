@@ -34,6 +34,10 @@ const MANAGED_KEYS = new Set([
 /** Prefixes for per-novel payloads. */
 const MANAGED_PREFIXES = [
   'characters_',
+  'worldview_',
+  'worldSettings_',
+  'corpus_',
+  'events_',
   'snapshots_',
   'focusDraft_',
   'backup_data_'

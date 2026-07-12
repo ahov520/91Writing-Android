@@ -28,21 +28,31 @@ const route = useRoute()
 const router = useRouter()
 
 const immersive = computed(
-  () => route.meta?.immersive === true || route.path.startsWith('/write')
+  () =>
+    route.meta?.immersive === true ||
+    route.path.startsWith('/write') ||
+    route.path.startsWith('/extras')
 )
 
 const tabs = [
   {
     to: '/',
-    match: ['/', '/home'],
+    match: ['/'],
+    exact: true,
     label: '书架',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`
   },
   {
-    to: '/backup',
-    match: ['/backup'],
-    label: '备份',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`
+    to: '/tools',
+    match: ['/tools'],
+    label: '创作',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`
+  },
+  {
+    to: '/more',
+    match: ['/more', '/prompts', '/goals', '/genres', '/billing', '/backup'],
+    label: '更多',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`
   },
   {
     to: '/settings',
@@ -54,7 +64,8 @@ const tabs = [
 
 function isActive(item) {
   const p = route.path
-  return item.match.some((m) => (m === '/' ? p === '/' : p.startsWith(m)))
+  if (item.exact) return p === '/' || p === ''
+  return item.match.some((m) => p === m || p.startsWith(m + '/'))
 }
 
 function go(to) {

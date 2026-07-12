@@ -25,16 +25,27 @@
     <div class="m-section-title">导出</div>
     <div class="m-card" style="margin-bottom: 16px">
       <p class="m-hint" style="margin: 0 0 12px">
-        导出 JSON 备份（含全部小说与章节正文）。请妥善保存，勿分享含 API Key 的完整配置包。
+        分类导出或完整备份。完整包含 API 配置，请勿外传。
       </p>
-      <div class="m-btn-row">
+      <div class="m-btn-row" style="margin-bottom: 8px">
         <button type="button" class="m-btn m-btn--primary" :disabled="busy" @click="exportNovels">
-          导出作品 JSON
+          作品
         </button>
-        <button type="button" class="m-btn m-btn--ghost" :disabled="busy" @click="exportFull">
-          导出完整备份
+        <button type="button" class="m-btn m-btn--ghost" :disabled="busy" @click="exportCategory('prompts')">
+          提示词
         </button>
       </div>
+      <div class="m-btn-row" style="margin-bottom: 8px">
+        <button type="button" class="m-btn m-btn--ghost" :disabled="busy" @click="exportCategory('writingGoals')">
+          目标
+        </button>
+        <button type="button" class="m-btn m-btn--ghost" :disabled="busy" @click="exportCategory('novelGenres')">
+          类型
+        </button>
+      </div>
+      <button type="button" class="m-btn m-btn--ghost m-btn--block" :disabled="busy" @click="exportFull">
+        导出完整备份（含配置）
+      </button>
     </div>
 
     <div class="m-section-title">导入</div>
@@ -148,6 +159,33 @@ async function exportNovels() {
   }
 }
 
+async function exportCategory(key) {
+  busy.value = true
+  try {
+    await flushStorage()
+    const raw = localStorage.getItem(key)
+    let data
+    try {
+      data = raw ? JSON.parse(raw) : []
+    } catch {
+      data = raw
+    }
+    const payload = {
+      type: `writing91-${key}`,
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      [key]: data
+    }
+    downloadJson(`91writing-${key}-${dateStamp()}.json`, payload)
+    lastMsg.value = `已导出 ${key}`
+    toast.success('已导出')
+  } catch {
+    toast.error('导出失败')
+  } finally {
+    busy.value = false
+  }
+}
+
 async function exportFull() {
   busy.value = true
   try {
@@ -213,6 +251,33 @@ async function onFile(ev) {
     const text = await file.text()
     const json = JSON.parse(text)
     let incoming = []
+
+    // Category-only backups
+    if (json?.type === 'writing91-prompts' && json.prompts) {
+      localStorage.setItem('prompts', JSON.stringify(json.prompts))
+      lastMsg.value = '已导入提示词'
+      toast.success('提示词已导入')
+      return
+    }
+    if (json?.type === 'writing91-writingGoals' && json.writingGoals) {
+      localStorage.setItem('writingGoals', JSON.stringify(json.writingGoals))
+      lastMsg.value = '已导入写作目标'
+      toast.success('目标已导入')
+      return
+    }
+    if (json?.type === 'writing91-novelGenres' && json.novelGenres) {
+      localStorage.setItem('novelGenres', JSON.stringify(json.novelGenres))
+      lastMsg.value = '已导入类型'
+      toast.success('类型已导入')
+      return
+    }
+    // Legacy prompts export format
+    if (json?.type === 'prompts' && Array.isArray(json.prompts)) {
+      localStorage.setItem('prompts', JSON.stringify(json.prompts))
+      lastMsg.value = '已导入旧版提示词格式'
+      toast.success('提示词已导入')
+      return
+    }
 
     if (json?.type === 'writing91-novels' && Array.isArray(json.novels)) {
       incoming = json.novels
