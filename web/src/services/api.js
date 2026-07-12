@@ -1,6 +1,6 @@
 import apiConfig from '../config/api.json'
 import billingService from './billing.js'
-import { ElMessage } from 'element-plus'
+import toast from './toast.js'
 
 class APIService {
   constructor() {
@@ -441,7 +441,7 @@ class APIService {
           streamError.message.includes('network')
         )) {
           console.log('网络问题导致流式中断，但已获得部分内容:', fullContent.length, '字符')
-          ElMessage.warning('网络不稳定，已获得部分生成内容')
+          toast.warning('网络不稳定，已获得部分生成内容')
           // 不抛出错误，返回已获得的内容
         } else {
           hasError = true

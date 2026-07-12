@@ -1,103 +1,53 @@
-import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
-import Dashboard from '../views/Dashboard.vue'
-import HomePage from '../views/HomePage.vue'
-import PromptsLibrary from '../views/PromptsLibrary.vue'
-import NovelManagement from '../views/NovelManagement.vue'
-import WritingGoals from '../views/WritingGoals.vue'
-import TokenBilling from '../views/TokenBilling.vue'
-import ApiConfig from '../views/ApiConfig.vue'
-import Settings from '../views/Settings.vue'
-import ChapterManagement from '../views/ChapterManagement.vue'
-import Writer from '../views/Writer.vue'
-import Home from '../views/Home.vue'
-import GenreManagement from '../views/GenreManagement.vue'
-import ToolsLibrary from '../views/ToolsLibrary.vue'
-import ShortStory from '../views/ShortStory.vue'
-import BookAnalysis from '../views/BookAnalysis.vue'
-import CreationStudio from '../views/CreationStudio.vue'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import MobileShell from '../layouts/MobileShell.vue'
 
 const routes = [
   {
     path: '/',
-    component: Dashboard,
+    component: MobileShell,
     children: [
       {
         path: '',
-        name: 'HomePage',
-        component: HomePage
+        name: 'Library',
+        component: () => import('../views/mobile/Library.vue'),
+        meta: { title: '书架' }
       },
       {
-        path: 'prompts',
-        name: 'PromptsLibrary',
-        component: PromptsLibrary
-      },
-      {
-        path: 'novels',
-        name: 'NovelManagement',
-        component: NovelManagement
-      },
-      {
-        path: 'goals',
-        name: 'WritingGoals',
-        component: WritingGoals
-      },
-      {
-        path: 'billing',
-        name: 'TokenBilling',
-        component: TokenBilling
-      },
-      {
-        path: 'config',
-        name: 'ApiConfig',
-        component: ApiConfig
+        path: 'backup',
+        name: 'Backup',
+        component: () => import('../views/mobile/Backup.vue'),
+        meta: { title: '备份' }
       },
       {
         path: 'settings',
         name: 'Settings',
-        component: Settings
+        component: () => import('../views/mobile/Settings.vue'),
+        meta: { title: '设置' }
       },
       {
-        path: 'chapters',
-        name: 'ChapterManagement',
-        component: ChapterManagement
-      },
-      {
-        path: 'writer',
+        path: 'write/:id',
         name: 'Writer',
-        component: Writer
-      },
-      {
-        path: 'genres',
-        name: 'GenreManagement',
-        component: GenreManagement
-      },
-      {
-        path: 'tools',
-        name: 'ToolsLibrary',
-        component: ToolsLibrary
-      },
-      {
-        path: 'short-story',
-        name: 'ShortStory',
-        component: ShortStory
-      },
-      {
-        path: 'book-analysis',
-        name: 'BookAnalysis',
-        component: BookAnalysis
-      },
-      {
-        path: 'studio',
-        name: 'CreationStudio',
-        component: CreationStudio
+        component: () => import('../views/mobile/Writer.vue'),
+        meta: { title: '写作', immersive: true }
       }
     ]
-  }
-  ]
+  },
+  // legacy paths → new UI
+  { path: '/novels', redirect: '/' },
+  { path: '/writer', redirect: '/' },
+  { path: '/config', redirect: '/settings' },
+  { path: '/:pathMatch(.*)*', redirect: '/' }
+]
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes
+})
+
+router.afterEach((to) => {
+  if (to.meta?.title) {
+    document.title = `${to.meta.title} · 91写作`
+  }
 })
 
 export default router
