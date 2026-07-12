@@ -5,6 +5,7 @@ import App from './App.vue'
 import './mobile.css'
 import { initStorage } from './services/storage.js'
 import { installMobileShell, setRouteChrome } from './utils/mobileShell.js'
+import { usePrefs } from './composables/usePrefs.js'
 
 async function bootstrap() {
   try {
@@ -13,6 +14,7 @@ async function bootstrap() {
     console.warn('storage init failed, continuing', e)
   }
 
+  usePrefs().applyTheme()
   installMobileShell()
 
   const app = createApp(App)

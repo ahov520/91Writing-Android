@@ -3,9 +3,45 @@
     <header class="m-header">
       <div class="m-header__text">
         <h1>设置</h1>
-        <p>API 与应用信息</p>
+        <p>API · 显示 · 关于</p>
       </div>
     </header>
+
+    <div class="m-section-title">显示</div>
+    <div class="m-card" style="margin-bottom: 16px">
+      <div class="m-segment" style="margin-bottom: 12px">
+        <button type="button" :class="{ 'is-active': prefs.theme === 'dark' }" @click="setTheme('dark')">
+          深色
+        </button>
+        <button type="button" :class="{ 'is-active': prefs.theme === 'light' }" @click="setTheme('light')">
+          浅色
+        </button>
+      </div>
+      <div class="m-field">
+        <label>编辑字号（{{ prefs.fontSize }}px）</label>
+        <input
+          :value="prefs.fontSize"
+          class="m-input"
+          type="range"
+          min="14"
+          max="24"
+          step="1"
+          @input="setFontSize(Number($event.target.value))"
+        />
+      </div>
+      <div class="m-field">
+        <label>行距（{{ prefs.lineHeight }}）</label>
+        <input
+          :value="prefs.lineHeight"
+          class="m-input"
+          type="range"
+          min="1.4"
+          max="2.2"
+          step="0.05"
+          @input="setLineHeight(Number($event.target.value))"
+        />
+      </div>
+    </div>
 
     <div class="m-section-title">API 配置</div>
     <div class="m-card" style="margin-bottom: 16px">
@@ -104,15 +140,19 @@
         <span>91写作 Android</span>
       </div>
       <div class="m-row-between" style="margin-bottom: 8px">
+        <span class="m-muted">版本</span>
+        <span>{{ appVersion }}</span>
+      </div>
+      <div class="m-row-between" style="margin-bottom: 8px">
         <span class="m-muted">界面</span>
-        <span>移动端 v2</span>
+        <span>移动端 v2.2</span>
       </div>
       <div class="m-row-between">
         <span class="m-muted">数据</span>
         <span>仅本地存储</span>
       </div>
       <p class="m-hint" style="margin-top: 12px">
-        AI 请求发往你配置的接口；作品数据默认只存本机，不经过本应用服务器。
+        AI 请求发往你配置的接口；作品数据默认只存本机。
       </p>
     </div>
   </div>
@@ -121,8 +161,10 @@
 <script setup>
 import { reactive, ref, watch, onMounted } from 'vue'
 import { useApiConfig } from '../../composables/useApiConfig.js'
+import { usePrefs } from '../../composables/usePrefs.js'
 import apiService from '../../services/api.js'
 import toast from '../../services/toast.js'
+import { getNativeVersion } from '../../utils/bridge.js'
 
 const {
   configType,
@@ -136,6 +178,8 @@ const {
   load
 } = useApiConfig()
 
+const { prefs, setTheme, setFontSize, setLineHeight } = usePrefs()
+
 const form = reactive({
   apiKey: '',
   baseURL: '',
@@ -145,6 +189,7 @@ const form = reactive({
 })
 
 const testing = ref(false)
+const appVersion = ref(getNativeVersion() || '2.2.0-web')
 
 function syncForm() {
   const src = configType.value === 'official' ? official.value : custom.value
@@ -193,5 +238,6 @@ watch(configType, syncForm)
 onMounted(() => {
   load()
   syncForm()
+  appVersion.value = getNativeVersion() || window.__WRITING91_VERSION__ || '2.2.0-web'
 })
 </script>

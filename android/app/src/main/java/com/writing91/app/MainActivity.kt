@@ -9,8 +9,16 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.View
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
+import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -32,6 +40,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.google.android.material.button.MaterialButton
+import org.json.JSONObject
 import java.io.File
 
 /**
@@ -95,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         reloadButton.setOnClickListener { loadApp() }
 
         setupWebView()
+        webView.addJavascriptInterface(Writing91Bridge(), "Writing91Bridge")
         setupBackHandler()
         loadApp()
     }
@@ -126,7 +136,7 @@ class MainActivity : AppCompatActivity() {
             setSupportMultipleWindows(false)
             // Local storage / IndexedDB capacity for large novels
             cacheMode = WebSettings.LOAD_DEFAULT
-            userAgentString = "$userAgentString Writing91Android/1.0"
+            userAgentString = "$userAgentString Writing91Android/2.2"
         }
 
         webView.webViewClient = object : WebViewClient() {
@@ -219,12 +229,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun injectAndroidBridge() {
-        // Mark environment so web UI can adapt (safe no-op if unused)
+        val versionName = try {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "2.2"
+        } catch (_: Exception) {
+            "2.2"
+        }
         webView.evaluateJavascript(
             """
             (function(){
               try {
                 window.__WRITING91_ANDROID__ = true;
+                window.__WRITING91_VERSION__ = ${JSONObject.quote(versionName)};
                 document.documentElement.classList.add('writing91-android');
                 var m = document.querySelector('meta[name=viewport]');
                 if (m) {
@@ -236,6 +251,84 @@ class MainActivity : AppCompatActivity() {
             """.trimIndent(),
             null
         )
+    }
+
+    /** JS bridge for export / keepScreenOn / haptic / version */
+    inner class Writing91Bridge {
+        @JavascriptInterface
+        fun getVersion(): String {
+            return try {
+                packageManager.getPackageInfo(packageName, 0).versionName ?: "2.2.0"
+            } catch (_: Exception) {
+                "2.2.0"
+            }
+        }
+
+        @JavascriptInterface
+        fun keepScreenOn(on: Boolean) {
+            runOnUiThread {
+                if (on) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun haptic() {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val vm = getSystemService(VibratorManager::class.java)
+                    vm?.defaultVibrator?.vibrate(
+                        VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE)
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    val v = getSystemService(VIBRATOR_SERVICE) as? Vibrator
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        v?.vibrate(VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        v?.vibrate(20)
+                    }
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        /** filename + base64 payload + mime */
+        @JavascriptInterface
+        fun exportText(filename: String?, base64: String?, mime: String?) {
+            if (base64.isNullOrBlank()) return
+            runOnUiThread {
+                try {
+                    val bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+                    val safeName = (filename?.ifBlank { null } ?: "export.txt")
+                        .replace(Regex("[\\/:*?\"<>|]"), "_")
+                    val file = File(cacheDir, safeName)
+                    file.writeBytes(bytes)
+                    val uri = FileProvider.getUriForFile(
+                        this@MainActivity,
+                        "$packageName.fileprovider",
+                        file
+                    )
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = mime?.ifBlank { null } ?: "text/plain"
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        putExtra(Intent.EXTRA_SUBJECT, safeName)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    startActivity(Intent.createChooser(intent, "导出 $safeName"))
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "导出失败: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
     private fun handleDownload(
@@ -337,16 +430,33 @@ class MainActivity : AppCompatActivity() {
     private fun setupBackHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (::webView.isInitialized && webView.canGoBack()) {
-                    webView.goBack()
+                if (!::webView.isInitialized) {
+                    finish()
                     return
                 }
-                val now = System.currentTimeMillis()
-                if (now - lastBackPressMs < 2000) {
-                    finish()
-                } else {
-                    lastBackPressMs = now
-                    Toast.makeText(this@MainActivity, R.string.exit_confirm, Toast.LENGTH_SHORT).show()
+                // Prefer SPA history via hash router
+                webView.evaluateJavascript(
+                    "(function(){try{if(location.hash&&location.hash!=='#/'&&location.hash!=='#'){history.back();return true;}return false;}catch(e){return false;}})()"
+                ) { result ->
+                    val handled = result == "true"
+                    if (handled) return@evaluateJavascript
+                    Handler(Looper.getMainLooper()).post {
+                        if (webView.canGoBack()) {
+                            webView.goBack()
+                        } else {
+                            val now = System.currentTimeMillis()
+                            if (now - lastBackPressMs < 2000) {
+                                finish()
+                            } else {
+                                lastBackPressMs = now
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    R.string.exit_confirm,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
                 }
             }
         })

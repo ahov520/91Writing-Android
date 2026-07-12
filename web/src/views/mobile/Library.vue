@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <div class="m-field" style="margin-bottom: 12px">
+    <div class="m-field" style="margin-bottom: 8px">
       <input
         v-model="keyword"
         class="m-input"
@@ -37,50 +37,89 @@
         enterkeyhint="search"
       />
     </div>
+    <div class="m-chips" style="padding-bottom: 10px">
+      <button
+        type="button"
+        class="m-chip"
+        :class="{ 'is-active': statusFilter === 'all' }"
+        @click="statusFilter = 'all'"
+      >
+        全部
+      </button>
+      <button
+        type="button"
+        class="m-chip"
+        :class="{ 'is-active': statusFilter === 'writing' }"
+        @click="statusFilter = 'writing'"
+      >
+        创作中
+      </button>
+      <button
+        type="button"
+        class="m-chip"
+        :class="{ 'is-active': statusFilter === 'paused' }"
+        @click="statusFilter = 'paused'"
+      >
+        暂停
+      </button>
+      <button
+        type="button"
+        class="m-chip"
+        :class="{ 'is-active': statusFilter === 'completed' }"
+        @click="statusFilter = 'completed'"
+      >
+        完成
+      </button>
+    </div>
 
     <div v-if="!filtered.length" class="m-empty">
       <div class="m-empty__icon">📖</div>
       <h3>{{ novels.length ? '没有匹配的作品' : '还没有作品' }}</h3>
-      <p>{{ novels.length ? '试试其他关键词' : '点右下角 + 创建第一部小说' }}</p>
+      <p>{{ novels.length ? '试试其他筛选' : '点右下角 + 创建第一部小说' }}</p>
       <button v-if="!novels.length" type="button" class="m-btn m-btn--primary" @click="openCreate">
         新建作品
       </button>
     </div>
 
     <div v-else class="m-list">
-      <button
-        v-for="n in filtered"
-        :key="n.id"
-        type="button"
-        class="m-novel-card"
-        @click="openNovel(n)"
-      >
-        <div class="m-novel-card__top">
-          <div class="m-novel-card__cover">{{ (n.title || '书')[0] }}</div>
-          <div class="m-novel-card__body">
-            <h3 class="m-novel-card__title">{{ n.title }}</h3>
-            <p class="m-novel-card__desc">
-              {{ n.description || '暂无简介' }}
-            </p>
+      <div v-for="n in filtered" :key="n.id" class="m-novel-card-wrap">
+        <button type="button" class="m-novel-card" @click="openNovel(n)">
+          <div class="m-novel-card__top">
+            <div class="m-novel-card__cover" :style="coverStyle(n)">
+              <span v-if="!n.cover">{{ (n.title || '书')[0] }}</span>
+            </div>
+            <div class="m-novel-card__body">
+              <h3 class="m-novel-card__title">{{ n.title }}</h3>
+              <p class="m-novel-card__desc">{{ n.description || '暂无简介' }}</p>
+            </div>
           </div>
+          <div class="m-novel-card__meta">
+            <span class="m-badge">{{ genreName(n.genre) }}</span>
+            <span
+              class="m-badge"
+              :class="
+                n.status === 'completed'
+                  ? 'm-badge--ok'
+                  : n.status === 'paused'
+                    ? 'm-badge--warn'
+                    : ''
+              "
+            >
+              {{ statusLabel(n.status) }}
+            </span>
+            <span>{{ (n.chapterList || []).length }} 章</span>
+            <span>{{ formatWords(n.wordCount) }} 字</span>
+          </div>
+        </button>
+        <div class="m-novel-card__actions">
+          <button type="button" class="m-chip-btn" @click="openMenu(n)">⋯</button>
         </div>
-        <div class="m-novel-card__meta">
-          <span class="m-badge">{{ genreName(n.genre) }}</span>
-          <span
-            class="m-badge"
-            :class="n.status === 'completed' ? 'm-badge--ok' : n.status === 'paused' ? 'm-badge--warn' : ''"
-          >
-            {{ statusLabel(n.status) }}
-          </span>
-          <span>{{ (n.chapterList || []).length }} 章</span>
-          <span>{{ formatWords(n.wordCount) }} 字</span>
-        </div>
-      </button>
+      </div>
     </div>
 
     <button type="button" class="m-fab" aria-label="新建作品" @click="openCreate">+</button>
 
-    <!-- create sheet -->
+    <!-- create -->
     <div v-if="showCreate" class="m-sheet-mask" @click.self="showCreate = false">
       <div class="m-sheet">
         <div class="m-sheet__handle" />
@@ -97,13 +136,86 @@
         </div>
         <div class="m-field">
           <label>简介（可选）</label>
-          <textarea v-model="form.description" class="m-textarea" rows="3" placeholder="一句话简介" />
+          <textarea v-model="form.description" class="m-textarea" rows="3" />
         </div>
         <div class="m-btn-row">
           <button type="button" class="m-btn m-btn--ghost" @click="showCreate = false">取消</button>
           <button type="button" class="m-btn m-btn--primary" :disabled="!form.title.trim()" @click="create">
             创建并写作
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- actions menu -->
+    <div v-if="menuNovel" class="m-sheet-mask" @click.self="menuNovel = null">
+      <div class="m-sheet">
+        <div class="m-sheet__handle" />
+        <h2 class="m-sheet__title">{{ menuNovel.title }}</h2>
+        <div class="m-list-actions">
+          <button type="button" class="m-action-row" @click="openNovel(menuNovel)">打开写作</button>
+          <button type="button" class="m-action-row" @click="openDetail">详情 / 封面</button>
+          <button type="button" class="m-action-row" @click="doDuplicate">复制作品</button>
+          <button type="button" class="m-action-row" @click="doExport">导出 TXT</button>
+          <button type="button" class="m-action-row" style="color: var(--danger)" @click="doDelete">
+            删除作品
+          </button>
+        </div>
+        <button type="button" class="m-btn m-btn--ghost m-btn--block" style="margin-top: 10px" @click="menuNovel = null">
+          关闭
+        </button>
+      </div>
+    </div>
+
+    <!-- detail / cover -->
+    <div v-if="showDetail" class="m-sheet-mask" @click.self="showDetail = false">
+      <div class="m-sheet">
+        <div class="m-sheet__handle" />
+        <h2 class="m-sheet__title">作品详情</h2>
+        <div class="m-field">
+          <label>标题</label>
+          <input v-model="detailForm.title" class="m-input" />
+        </div>
+        <div class="m-field">
+          <label>作者</label>
+          <input v-model="detailForm.author" class="m-input" />
+        </div>
+        <div class="m-field">
+          <label>类型</label>
+          <select v-model="detailForm.genre" class="m-select">
+            <option v-for="g in GENRES" :key="g.code" :value="g.code">{{ g.name }}</option>
+          </select>
+        </div>
+        <div class="m-field">
+          <label>状态</label>
+          <select v-model="detailForm.status" class="m-select">
+            <option value="writing">创作中</option>
+            <option value="paused">已暂停</option>
+            <option value="completed">已完成</option>
+          </select>
+        </div>
+        <div class="m-field">
+          <label>简介</label>
+          <textarea v-model="detailForm.description" class="m-textarea" rows="3" />
+        </div>
+        <div class="m-field">
+          <label>封面（可选）</label>
+          <input type="file" accept="image/*" @change="onCover" />
+          <span class="m-hint">将压缩为小图存本地，过大可能占空间</span>
+          <div v-if="detailForm.cover" class="m-cover-preview" :style="coverStyle({ cover: detailForm.cover })" />
+          <button
+            v-if="detailForm.cover"
+            type="button"
+            class="m-btn m-btn--ghost m-btn--sm"
+            style="margin-top: 8px"
+            @click="detailForm.cover = ''"
+          >
+            清除封面
+          </button>
+        </div>
+        <div class="m-btn-row">
+          <button type="button" class="m-btn m-btn--ghost" @click="showDetail = false">取消</button>
+          <button type="button" class="m-btn m-btn--primary" @click="saveDetail">保存</button>
         </div>
       </div>
     </div>
@@ -116,21 +228,48 @@ import { useRouter } from 'vue-router'
 import { useNovels, statusLabel } from '../../composables/useNovels.js'
 import { useGenres } from '../../composables/useGenres.js'
 import toast from '../../services/toast.js'
+import { downloadText } from '../../utils/download.js'
 
 const router = useRouter()
-const { novels, sorted, totalWords, load, createNovel } = useNovels()
+const {
+  novels,
+  sorted,
+  totalWords,
+  load,
+  createNovel,
+  updateNovel,
+  deleteNovel,
+  duplicateNovel,
+  exportNovelText
+} = useNovels()
 const { options: GENRES, nameOf: genreName, bumpUsage } = useGenres()
+
 const keyword = ref('')
+const statusFilter = ref('all')
 const showCreate = ref(false)
+const showDetail = ref(false)
+const menuNovel = ref(null)
 const form = reactive({ title: '', genre: 'fantasy', description: '' })
+const detailForm = reactive({
+  id: '',
+  title: '',
+  author: '',
+  genre: 'fantasy',
+  status: 'writing',
+  description: '',
+  cover: ''
+})
 
 const totalChapters = computed(() =>
   novels.value.reduce((s, n) => s + (n.chapterList?.length || 0), 0)
 )
 
 const filtered = computed(() => {
+  let list = sorted.value
+  if (statusFilter.value !== 'all') {
+    list = list.filter((n) => n.status === statusFilter.value)
+  }
   const k = keyword.value.trim().toLowerCase()
-  const list = sorted.value
   if (!k) return list
   return list.filter(
     (n) =>
@@ -145,9 +284,20 @@ function formatWords(n) {
   return String(v)
 }
 
+function coverStyle(n) {
+  if (n?.cover) {
+    return {
+      backgroundImage: `url(${n.cover})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
+    }
+  }
+  return {}
+}
+
 function openCreate() {
   form.title = ''
-  form.genre = 'fantasy'
+  form.genre = GENRES.value[0]?.code || 'fantasy'
   form.description = ''
   showCreate.value = true
 }
@@ -175,10 +325,99 @@ async function create() {
 }
 
 function openNovel(n) {
+  menuNovel.value = null
   router.push(`/write/${n.id}`)
 }
 
-onMounted(() => {
-  load()
-})
+function openMenu(n) {
+  menuNovel.value = n
+}
+
+function openDetail() {
+  const n = menuNovel.value
+  if (!n) return
+  Object.assign(detailForm, {
+    id: n.id,
+    title: n.title || '',
+    author: n.author || '',
+    genre: n.genre || 'fantasy',
+    status: n.status || 'writing',
+    description: n.description || '',
+    cover: n.cover || ''
+  })
+  menuNovel.value = null
+  showDetail.value = true
+}
+
+function onCover(ev) {
+  const file = ev.target.files?.[0]
+  ev.target.value = ''
+  if (!file) return
+  if (file.size > 2 * 1024 * 1024) {
+    toast.warning('请选择 2MB 以内的图片')
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = () => {
+    const img = new Image()
+    img.onload = () => {
+      const max = 320
+      let w = img.width
+      let h = img.height
+      if (w > max || h > max) {
+        const r = Math.min(max / w, max / h)
+        w = Math.round(w * r)
+        h = Math.round(h * r)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, w, h)
+      detailForm.cover = canvas.toDataURL('image/jpeg', 0.72)
+    }
+    img.src = reader.result
+  }
+  reader.readAsDataURL(file)
+}
+
+async function saveDetail() {
+  await updateNovel(detailForm.id, {
+    title: detailForm.title.trim() || '未命名',
+    author: detailForm.author.trim(),
+    genre: detailForm.genre,
+    status: detailForm.status,
+    description: detailForm.description,
+    cover: detailForm.cover
+  })
+  showDetail.value = false
+  toast.success('已保存')
+}
+
+async function doDuplicate() {
+  const n = menuNovel.value
+  menuNovel.value = null
+  if (!n) return
+  const copy = await duplicateNovel(n.id)
+  toast.success(copy ? '已复制' : '复制失败')
+}
+
+function doExport() {
+  const n = menuNovel.value
+  menuNovel.value = null
+  if (!n) return
+  downloadText(`${n.title || 'novel'}.txt`, exportNovelText(n))
+  toast.success('已导出')
+}
+
+async function doDelete() {
+  const n = menuNovel.value
+  if (!n) return
+  if (!confirm(`确定删除《${n.title}》？不可恢复`)) return
+  menuNovel.value = null
+  await deleteNovel(n.id)
+  toast.success('已删除')
+}
+
+onMounted(() => load())
 </script>

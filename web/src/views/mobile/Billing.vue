@@ -22,6 +22,15 @@
       </div>
     </div>
 
+    <div class="m-section-title">近 7 日</div>
+    <div class="m-card" style="margin-bottom: 16px">
+      <div v-for="d in trend" :key="d.date" class="m-row-between" style="margin-bottom: 8px; font-size: 0.85rem">
+        <span class="m-muted">{{ shortDate(d.date) }}</span>
+        <span>{{ d.requestCount }} 次 · {{ d.tokenCount }} tok · ¥{{ Number(d.cost || 0).toFixed(3) }}</span>
+      </div>
+      <div v-if="!trend.length" class="m-muted">暂无趋势</div>
+    </div>
+
     <div class="m-section-title">最近调用</div>
     <div v-if="!records.length" class="m-empty">
       <p>暂无记录，使用 AI 后会出现在这里</p>
@@ -66,6 +75,7 @@ const stats = ref({
   totalCost: 0
 })
 const records = ref([])
+const trend = ref([])
 
 function fmt(n) {
   const v = Number(n) || 0
@@ -82,11 +92,21 @@ function formatTime(t) {
   }
 }
 
+function shortDate(d) {
+  try {
+    const x = new Date(d)
+    return `${x.getMonth() + 1}/${x.getDate()}`
+  } catch {
+    return d
+  }
+}
+
 function refresh() {
   try {
     stats.value = billingService.getUsageStats?.() || stats.value
     const list = billingService.getBillingRecords?.() || []
     records.value = Array.isArray(list) ? [...list].reverse() : []
+    trend.value = billingService.getUsageTrend?.(7) || []
   } catch (e) {
     console.warn(e)
   }

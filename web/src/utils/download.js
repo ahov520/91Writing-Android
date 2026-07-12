@@ -1,6 +1,11 @@
-/** Download text/json; prefer data: URL on Android WebView. */
+import { exportViaBridge } from './bridge.js'
+
+/** Download text/json; prefer native bridge, then data: URL on Android WebView. */
 export function downloadText(filename, text, mime = 'text/plain;charset=utf-8') {
   const body = typeof text === 'string' ? text : String(text ?? '')
+  if (exportViaBridge(filename, body, mime.split(';')[0] || 'text/plain')) {
+    return
+  }
   const useData =
     typeof window !== 'undefined' &&
     (window.__WRITING91_ANDROID__ || /Android/i.test(navigator.userAgent || ''))

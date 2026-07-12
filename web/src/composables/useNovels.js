@@ -132,6 +132,45 @@ export function useNovels() {
     await save()
   }
 
+  async function duplicateNovel(id) {
+    const src = getById(id)
+    if (!src) return null
+    const copy = normalizeNovel({
+      ...JSON.parse(JSON.stringify(src)),
+      id: uid(),
+      title: (src.title || '未命名') + ' (副本)',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      chapterList: (src.chapterList || []).map((c) => ({
+        ...c,
+        id: uid(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }))
+    })
+    novels.value.unshift(copy)
+    await save()
+    return copy
+  }
+
+  /** Replace chapterList from outline parse (optional clear existing) */
+  async function importChaptersFromOutline(novelId, chapterStubs, { replace = false } = {}) {
+    const novel = getById(novelId)
+    if (!novel) return null
+    const mapped = (chapterStubs || []).map((c) => ({
+      id: uid(),
+      title: c.title || '新章节',
+      content: c.content || '',
+      description: '',
+      wordCount: countWords(c.content || ''),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }))
+    const list = replace ? mapped : [...(novel.chapterList || []), ...mapped]
+    await updateNovel(novelId, { chapterList: list })
+    return list
+  }
+
   async function addChapter(novelId, title = '新章节') {
     const novel = getById(novelId)
     if (!novel) return null
@@ -253,6 +292,8 @@ export function useNovels() {
     createNovel,
     updateNovel,
     deleteNovel,
+    duplicateNovel,
+    importChaptersFromOutline,
     addChapter,
     updateChapter,
     deleteChapter,

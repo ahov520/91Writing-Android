@@ -1,5 +1,5 @@
 <template>
-  <div class="m-writer">
+  <div class="m-writer" :class="{ 'is-reading': prefs.readingMode }">
     <header class="m-writer__top">
       <button type="button" class="m-icon-btn" aria-label="返回" @click="goBack">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -164,6 +164,12 @@
           <button type="button" class="m-action-row" @click="toggleContext">
             AI 引用设定：{{ useContext ? '开' : '关' }}
           </button>
+          <button type="button" class="m-action-row" @click="toggleReading">
+            阅读模式：{{ prefs.readingMode ? '开' : '关' }}
+          </button>
+          <button type="button" class="m-action-row" @click="takeSnapshot">保存章节快照</button>
+          <button type="button" class="m-action-row" @click="openSnapshots">恢复快照…</button>
+          <button type="button" class="m-action-row" @click="openOutlineImport">大纲导入章节</button>
           <button type="button" class="m-action-row" @click="exportChapter">导出本章 TXT</button>
           <button type="button" class="m-action-row" @click="exportBook">导出全书 TXT</button>
           <button type="button" class="m-action-row" @click="openChapterMeta">重命名当前章节</button>
@@ -275,6 +281,47 @@
         </div>
       </div>
     </div>
+
+    <!-- snapshots -->
+    <div v-if="showSnapshots" class="m-sheet-mask" @click.self="showSnapshots = false">
+      <div class="m-sheet">
+        <div class="m-sheet__handle" />
+        <h2 class="m-sheet__title">章节快照</h2>
+        <div v-if="!chapterSnapshots.length" class="m-muted" style="padding: 12px">暂无快照</div>
+        <div v-for="s in chapterSnapshots" :key="s.id" class="m-card" style="margin-bottom: 8px">
+          <div class="m-row-between">
+            <strong style="font-size: 0.9rem">{{ s.chapterTitle || '章节' }}</strong>
+            <span class="m-muted" style="font-size: 0.75rem">{{ formatSnapTime(s.createdAt) }}</span>
+          </div>
+          <p class="m-muted" style="font-size: 0.8rem; margin: 6px 0">{{ s.wordCount }} 字 · {{ (s.content || '').slice(0, 60) }}…</p>
+          <div class="m-btn-row">
+            <button type="button" class="m-btn m-btn--primary m-btn--sm" @click="restoreSnapshot(s)">恢复</button>
+            <button type="button" class="m-btn m-btn--danger m-btn--sm" @click="deleteSnapshot(s)">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- outline import -->
+    <div v-if="showOutline" class="m-sheet-mask" @click.self="showOutline = false">
+      <div class="m-sheet">
+        <div class="m-sheet__handle" />
+        <h2 class="m-sheet__title">大纲导入章节</h2>
+        <p class="m-hint">粘贴含 ### 标题 的大纲，将解析为多章（可追加或替换）</p>
+        <div class="m-field">
+          <textarea v-model="outlineText" class="m-textarea" rows="8" placeholder="### 第一章 标题\n要点…" />
+        </div>
+        <label class="m-hint" style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px">
+          <input v-model="outlineReplace" type="checkbox" /> 替换现有章节（危险）
+        </label>
+        <div class="m-btn-row">
+          <button type="button" class="m-btn m-btn--ghost" @click="showOutline = false">取消</button>
+          <button type="button" class="m-btn m-btn--primary" :disabled="!outlineText.trim()" @click="importOutline">
+            导入
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -287,9 +334,12 @@ import { usePrompts, PROMPT_CATEGORIES } from '../../composables/usePrompts.js'
 import { useGenres } from '../../composables/useGenres.js'
 import { useGoals } from '../../composables/useGoals.js'
 import { useNovelExtras } from '../../composables/useNovelExtras.js'
+import { useSnapshots, parseOutlineToChapters } from '../../composables/useSnapshots.js'
+import { usePrefs } from '../../composables/usePrefs.js'
 import apiService from '../../services/api.js'
 import toast from '../../services/toast.js'
 import { downloadText } from '../../utils/download.js'
+import { keepScreenOn } from '../../utils/bridge.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -303,15 +353,18 @@ const {
   moveChapter,
   exportNovelText,
   exportChapterText,
+  importChaptersFromOutline,
   countWords
 } = useNovels()
 const { isConfigured, applyToService } = useApiConfig()
 const { byCategory, bumpUsage, applyTemplate, load: loadPrompts } = usePrompts()
 const { options: genreOptions } = useGenres()
 const { recordWords } = useGoals()
+const { prefs, toggleReadingMode } = usePrefs()
 
 const novelId = computed(() => route.params.id)
 const extras = useNovelExtras(novelId)
+const snaps = useSnapshots(novelId)
 
 const novel = ref(null)
 const chapterId = ref(null)
@@ -325,6 +378,10 @@ const showPromptPick = ref(false)
 const showMeta = ref(false)
 const showMore = ref(false)
 const showNovelEdit = ref(false)
+const showSnapshots = ref(false)
+const showOutline = ref(false)
+const outlineText = ref('')
+const outlineReplace = ref(false)
 const customPrompt = ref('')
 const metaTitle = ref('')
 const isStreaming = ref(false)
@@ -352,6 +409,9 @@ const chapter = computed(
 )
 const wordCount = computed(() => countWords(draft.value))
 const filteredPrompts = computed(() => byCategory(promptCat.value))
+const chapterSnapshots = computed(() =>
+  snaps.list.value.filter((s) => String(s.chapterId) === String(chapterId.value))
+)
 
 function refreshNovel() {
   novel.value = getById(novelId.value)
@@ -523,6 +583,76 @@ function toggleContext() {
   toast.info(useContext.value ? 'AI 将引用角色/世界观等设定' : '已关闭设定引用')
 }
 
+function toggleReading() {
+  toggleReadingMode()
+  showMore.value = false
+  toast.info(prefs.value.readingMode ? '阅读模式已开' : '阅读模式已关')
+}
+
+async function takeSnapshot() {
+  showMore.value = false
+  if (dirty.value) await saveNow(true)
+  await snaps.addSnapshot({
+    chapterId: chapterId.value,
+    chapterTitle: chapter.value?.title,
+    content: draft.value,
+    note: 'manual'
+  })
+  toast.success('快照已保存')
+}
+
+function openSnapshots() {
+  showMore.value = false
+  snaps.load()
+  showSnapshots.value = true
+}
+
+function formatSnapTime(t) {
+  try {
+    return new Date(t).toLocaleString('zh-CN')
+  } catch {
+    return ''
+  }
+}
+
+async function restoreSnapshot(s) {
+  if (!confirm('用快照覆盖当前章节正文？')) return
+  draft.value = s.content || ''
+  dirty.value = true
+  await saveNow(true)
+  showSnapshots.value = false
+  toast.success('已恢复快照')
+}
+
+async function deleteSnapshot(s) {
+  await snaps.removeSnapshot(s.id)
+  snaps.load()
+  toast.success('已删除快照')
+}
+
+function openOutlineImport() {
+  showMore.value = false
+  outlineText.value = ''
+  outlineReplace.value = false
+  showOutline.value = true
+}
+
+async function importOutline() {
+  const stubs = parseOutlineToChapters(outlineText.value)
+  if (!stubs.length) {
+    toast.warning('未能解析出章节')
+    return
+  }
+  if (outlineReplace.value && !confirm(`将替换为 ${stubs.length} 章，确定？`)) return
+  if (dirty.value) await saveNow(true)
+  await importChaptersFromOutline(novelId.value, stubs, { replace: outlineReplace.value })
+  novel.value = getById(novelId.value)
+  chapterId.value = null
+  refreshNovel()
+  showOutline.value = false
+  toast.success(`已导入 ${stubs.length} 章`)
+}
+
 function exportChapter() {
   if (!chapter.value) return
   const text = exportChapterText(novel.value, { ...chapter.value, content: draft.value })
@@ -651,6 +781,7 @@ async function usePrompt(p) {
 
 async function streamGenerate(prompt, type) {
   isStreaming.value = true
+  keepScreenOn(true)
   aiMode.value = type
   streamPreview.value = ''
   streamBuffer = ''
@@ -696,6 +827,7 @@ async function streamGenerate(prompt, type) {
     }
   } finally {
     isStreaming.value = false
+    keepScreenOn(false)
     abortController = null
     streamPreview.value = ''
   }
@@ -726,6 +858,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   if (saveTimer) clearTimeout(saveTimer)
   if (abortController) abortController.abort()
+  keepScreenOn(false)
   if (dirty.value) saveNow(true)
 })
 </script>
