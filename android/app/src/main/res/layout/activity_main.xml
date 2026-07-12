@@ -17,12 +17,24 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="24dp"
+        android:background="@color/splash_bg">
+
+        <TextView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:text="墨"
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:background="@drawable/splash_logo_bg"
+            android:gravity="center" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📚 91写作"
+            android:layout_marginTop="18dp"
+            android:text="91写作"
             android:textColor="#FFFFFF"
             android:textSize="28sp"
             android:textStyle="bold" />
@@ -31,15 +43,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="AI 智能小说创作工具"
-            android:textColor="#A0A0B0"
-            android:textSize="14sp" />
+            android:text="墨韵 · 紫金 · AI Novel Studio"
+            android:textColor="#C4B5FD"
+            android:textSize="13sp" />
 
         <ProgressBar
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="32dp"
-            android:indeterminate="true" />
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginTop="36dp"
+            android:indeterminate="true"
+            android:indeterminateTint="#A78BFA" />
 
         <TextView
             android:id="@+id/loadingText"
@@ -47,7 +60,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/loading"
-            android:textColor="#808090"
+            android:textColor="#94A3B8"
             android:textSize="13sp" />
     </LinearLayout>
 
@@ -58,14 +71,15 @@
         android:gravity="center"
         android:orientation="vertical"
         android:padding="32dp"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:background="@color/splash_bg">
 
         <TextView
             android:id="@+id/errorText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:textColor="#F56C6C"
+            android:textColor="#FDA4AF"
             android:textSize="15sp" />
 
         <com.google.android.material.button.MaterialButton
@@ -73,6 +87,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="@string/reload" />
+            android:text="@string/reload"
+            android:backgroundTint="#7C3AED"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 </FrameLayout>

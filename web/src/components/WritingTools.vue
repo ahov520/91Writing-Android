@@ -452,8 +452,8 @@ const generateWorldSetting = async () => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 12px;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  border-radius: 12px;
   margin-bottom: 8px;
 }
 
@@ -467,7 +467,7 @@ const generateWorldSetting = async () => {
 .character-info h4,
 .setting-info h4 {
   margin: 0 0 8px 0;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .character-info p,
@@ -502,18 +502,99 @@ const generateWorldSetting = async () => {
 
 .inspiration-content p {
   margin: 0 0 4px 0;
-  color: #303133;
+  color: #1e1b4b;
   line-height: 1.4;
 }
 
 .inspiration-content small {
-  color: #909399;
+  color: #64748b;
 }
 
 .empty-state {
   text-align: center;
-  color: #909399;
+  color: #64748b;
   padding: 40px 20px;
   font-style: italic;
+}
+
+/* Round 13 tools */
+
+.tool-item, .tool-card, .writing-tool {
+  border-radius: 14px !important;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+.tool-item:hover, .tool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(124,58,237,0.12);
+}
+
+
+/* Round 42 */
+.writing-tools, .tools-grid {
+  gap: 12px;
+}
+
+/* Round 272 */
+:deep(.el-card){border-radius:14px!important;}
+
+/* Round 348 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 419 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 442 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 515 */
+:deep(.el-empty) {
+  padding: 24px 8px;
+}
+
+/* Round 575 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 619 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 658 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Round 720 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 770 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 856 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 913 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 1000 */
+:deep(.el-loading-text){font-weight:800;}
+
+/* Round 1046 */
+.writing-tools :deep(.el-card) {
+  border-radius: 14px !important;
 }
 </style>

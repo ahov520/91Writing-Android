@@ -509,7 +509,7 @@ const showFullContent = (item) => {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .corpus-tabs {
@@ -546,7 +546,7 @@ const showFullContent = (item) => {
 
 .file-icon {
   margin-right: 8px;
-  color: #409eff;
+  color: #7c3aed;
 }
 
 .file-name {
@@ -555,7 +555,7 @@ const showFullContent = (item) => {
 }
 
 .file-size {
-  color: #909399;
+  color: #64748b;
   font-size: 12px;
 }
 
@@ -580,7 +580,7 @@ const showFullContent = (item) => {
 .empty-corpus {
   text-align: center;
   padding: 40px;
-  color: #909399;
+  color: #64748b;
 }
 
 .empty-icon {
@@ -618,12 +618,12 @@ const showFullContent = (item) => {
   align-items: center;
   gap: 12px;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .corpus-id {
   font-weight: 500;
-  color: #409eff;
+  color: #7c3aed;
 }
 
 .corpus-actions {
@@ -641,7 +641,7 @@ const showFullContent = (item) => {
 
 .corpus-content {
   line-height: 1.6;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .content-preview {
@@ -677,5 +677,72 @@ const showFullContent = (item) => {
 
 :deep(.el-tabs__content) {
   padding: 0;
+}
+
+/* Round 13 corpus */
+
+.corpus-item {
+  border-radius: 12px !important;
+  border: 1px solid rgba(124,58,237,0.12) !important;
+  transition: all 0.28s;
+}
+.corpus-item:hover {
+  border-color: rgba(124,58,237,0.3) !important;
+  background: #faf5ff;
+}
+
+
+/* Round 80 */
+.corpus-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Round 167 */
+:deep(.el-button) { font-weight: 700; }
+
+/* Round 277 */
+:deep(.el-card){border-radius:14px!important;}
+
+/* Round 367 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 438 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 514 */
+:deep(.el-empty) {
+  padding: 24px 8px;
+}
+
+/* Round 723 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 773 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 859 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 916 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 1146 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
 }
 </style>

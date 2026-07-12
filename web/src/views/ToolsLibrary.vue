@@ -1045,19 +1045,19 @@ onMounted(() => {
 }
 
 .tool-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid #e4e7ed;
+  border: 1px solid rgba(124, 58, 237, 0.12);
 }
 
 .tool-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-color: #409eff;
+  border-color: #7c3aed;
 }
 
 .tool-icon {
@@ -1068,7 +1068,7 @@ onMounted(() => {
 
 .tool-card h3 {
   font-size: 18px;
-  color: #2c3e50;
+  color: #1e1b4b;
   margin-bottom: 8px;
   text-align: center;
 }
@@ -1119,7 +1119,7 @@ onMounted(() => {
 .tool-result h4 {
   margin-top: 0;
   margin-bottom: 16px;
-  color: #2c3e50;
+  color: #1e1b4b;
 }
 
 .result-content-wrapper {
@@ -1131,9 +1131,9 @@ onMounted(() => {
 }
 
 .result-textarea :deep(.el-textarea__inner) {
-  background: white;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  border-radius: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 14px;
   line-height: 1.6;
@@ -1172,13 +1172,13 @@ onMounted(() => {
 
 .prompt-option-title {
   font-weight: 500;
-  color: #303133;
+  color: #1e1b4b;
   margin-bottom: 4px;
 }
 
 .prompt-option-desc {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   line-height: 1.4;
 }
 
@@ -1215,4 +1215,175 @@ onMounted(() => {
     max-width: 200px;
   }
 }
+
+/* Round 7 tools polish */
+.tool-card, .tool-item {
+  border-radius: 16px !important;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+.tool-card:hover, .tool-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(124,58,237,0.14) !important;
+}
+.header-content h1 { font-weight: 800; font-size: 22px; }
+
+/* Round 19 tools depth */
+.tools-library .tool-card :deep(.el-card__body) {
+  min-height: 120px;
+}
+.tools-library .tool-icon, .action-icon {
+  border-radius: 14px !important;
+}
+
+/* Round 35 glass header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+}
+.header-content h1 { font-weight: 800; font-size: 22px; color: #1e1b4b; margin: 0 0 6px; }
+.header-content p { margin: 0; color: #64748b; font-size: 13px; }
+
+/* Round 67 */
+@media (max-width: 768px) {
+  .tools-grid, .tool-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Round 102 bulk radius/surface */
+
+/* Round 133 */
+:deep(.el-button--primary.is-plain) {
+  --el-button-bg-color: rgba(124,58,237,0.08);
+  --el-button-border-color: rgba(124,58,237,0.25);
+  --el-button-text-color: #6d28d9;
+  font-weight: 700;
+}
+
+/* Round 157 */
+:deep(.el-card) {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 200 */
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-weight: 500;
+}
+
+/* Round 241 */
+:deep(.el-dialog) {
+  border-radius: 18px !important;
+}
+@media (max-width: 768px) {
+  :deep(.el-dialog) {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Round 307 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 340 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 374 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 408 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 476 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+/* Round 549 */
+.tool-card:active{transform:scale(.99);}
+
+/* Round 580 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 611 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 645 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Round 708 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 755 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 807 */
+.tool-card :deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Round 844 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 902 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 989 */
+:deep(.el-loading-text){font-weight:800;}
+
+/* Round 1001 residual brand pass */
+
+/* Round 1006 tools residual */
+.tools-library :deep(.el-card) {
+  border-radius: 16px !important;
+  border: 1px solid rgba(124,58,237,0.1) !important;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+.tools-library :deep(.el-card:hover) {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(124,58,237,0.12) !important;
+}
+
+/* Round 1056 */
+.tools-library :deep(.el-button) {
+  font-weight: 700;
+}
+
+/* Round 1157 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
+}
+
+/* Round 1209 */
+.tools-library :deep(.el-card__header) {
+  font-weight: 800;
+  color: #1e1b4b;
+}
+
 </style>

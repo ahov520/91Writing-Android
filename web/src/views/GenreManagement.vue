@@ -479,20 +479,13 @@ onMounted(() => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  padding: 24px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  /* global design-system page-header */
 }
 
 .header-content h1 {
   margin: 0 0 8px 0;
   font-size: 24px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .header-content p {
@@ -533,7 +526,7 @@ onMounted(() => {
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .genre-actions {
@@ -545,8 +538,8 @@ onMounted(() => {
   margin-bottom: 16px;
   padding: 12px;
   background: #f8f9fa;
-  border-radius: 6px;
-  border-left: 3px solid #409eff;
+  border-radius: 12px;
+  border-left: 3px solid #7c3aed;
 }
 
 .genre-description p {
@@ -564,7 +557,7 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .meta-item {
@@ -583,7 +576,7 @@ onMounted(() => {
 
 .form-tip {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   margin-top: 4px;
 }
 
@@ -610,4 +603,152 @@ onMounted(() => {
     padding: 16px;
   }
 }
+
+/* Round 5 genre polish */
+.genre-card, .genre-item, .preset-card {
+  border-radius: 14px !important;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+.genre-card:hover, .genre-item:hover, .preset-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(124,58,237,0.12) !important;
+}
+
+/* Round 16 genre depth */
+.header-content h1 { font-weight: 800; font-size: 22px; }
+.genre-card :deep(.el-card__body), .preset-item {
+  border-radius: 14px;
+}
+
+/* Round 35 glass header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+}
+.header-content h1 { font-weight: 800; font-size: 22px; color: #1e1b4b; margin: 0 0 6px; }
+.header-content p { margin: 0; color: #64748b; font-size: 13px; }
+
+/* Round 53 */
+.genre-grid, .presets-grid {
+  gap: 14px;
+}
+
+/* Round 102 bulk radius/surface */
+
+/* Round 117 */
+.preset-desc, .genre-desc { color: #64748b; line-height: 1.5; }
+
+
+/* Round 155 */
+:deep(.el-card) {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 207 */
+.genre-name,.preset-name{font-weight:800;color:#1e1b4b;}
+
+/* Round 242 */
+:deep(.el-dialog) {
+  border-radius: 18px !important;
+}
+@media (max-width: 768px) {
+  :deep(.el-dialog) {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Round 305 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 339 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 377 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 413 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 481 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+/* Round 548 */
+.genre-card:active,.preset-card:active{transform:scale(.99);}
+
+/* Round 579 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 615 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 649 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Round 715 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 762 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 809 */
+.genre-card :deep(.el-card__header),
+.preset-card :deep(.el-card__header) {
+  font-weight: 800;
+}
+
+/* Round 851 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 909 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 996 */
+:deep(.el-loading-text){font-weight:800;}
+
+/* Round 1044 */
+.genre-management :deep(.el-card),
+.genre-page :deep(.el-card) {
+  border-radius: 16px !important;
+}
+
+/* Round 1101 residual cleanup */
+
+/* Round 1152 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
+}
+
+/* Round 1217 */
+.genre-management :deep(.el-tag),
+.genre-page :deep(.el-tag) {
+  font-weight: 700;
+}
+
 </style> 

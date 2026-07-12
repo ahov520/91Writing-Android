@@ -4,18 +4,28 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Open book -->
+    <!-- Soft brand glow -->
+    <path
+        android:fillColor="#A78BFA"
+        android:fillAlpha="0.35"
+        android:pathData="M54,22 a32,32 0 1,1 0.1,0 z" />
+    <!-- Open book left -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M24,30 h28 v48 h-28 z" />
+        android:pathData="M28,34 h24 c2,0 4,2 4,4 v36 c0,2 -2,4 -4,4 h-24 z" />
+    <!-- Open book right -->
     <path
-        android:fillColor="#E8F3FF"
-        android:pathData="M56,30 h28 v48 h-28 z" />
+        android:fillColor="#EDE9FE"
+        android:pathData="M56,38 c0,-2 2,-4 4,-4 h20 v44 h-20 c-2,0 -4,-2 -4,-4 z" />
+    <!-- Spine -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M52,28 c0,0 2,2 2,26 s-2,26 -2,26 h4 c0,0 2,-2 2,-26 s-2,-26 -2,-26 z" />
-    <!-- pen accent -->
+        android:fillColor="#DDD6FE"
+        android:pathData="M52,34 c0,0 2,2 2,22 s-2,22 -2,22 h4 c0,0 2,-2 2,-22 s-2,-22 -2,-22 z" />
+    <!-- Pen accent gold/pink -->
     <path
-        android:fillColor="#FFD666"
-        android:pathData="M72,62 l10,-18 4,2 -10,18 -5,1 z" />
+        android:fillColor="#FBBF24"
+        android:pathData="M70,64 l12,-20 5,3 -12,20 -6,1 z" />
+    <path
+        android:fillColor="#EC4899"
+        android:pathData="M82,44 l5,3 -2,3 -5,-3 z" />
 </vector>

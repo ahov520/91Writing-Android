@@ -151,15 +151,15 @@ const getGenderText = (gender) => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 16px;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  border-radius: 12px;
   margin-bottom: 12px;
   transition: all 0.3s ease;
 }
 
 .character-item:hover {
-  border-color: #409eff;
-  background-color: #f0f9ff;
+  border-color: #7c3aed;
+  background-color: #faf5ff;
 }
 
 .character-content {
@@ -186,7 +186,7 @@ const getGenderText = (gender) => {
 .default-avatar {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -202,7 +202,7 @@ const getGenderText = (gender) => {
 .character-info h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
   margin: 0 0 8px 0;
 }
 
@@ -215,7 +215,7 @@ const getGenderText = (gender) => {
 
 .age-text {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .character-desc {
@@ -244,10 +244,86 @@ const getGenderText = (gender) => {
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: #909399;
+  color: #64748b;
 }
 
 .empty-state p {
   margin-bottom: 16px;
+}
+
+/* Round 12 panel polish */
+:deep(.el-card) {
+  border-radius: 16px !important;
+  border: 1px solid rgba(124,58,237,0.1) !important;
+  background: rgba(255,255,255,0.92) !important;
+  box-shadow: 0 8px 24px rgba(79,70,229,0.06) !important;
+}
+.card-header { font-weight: 800 !important; color: #1e1b4b !important; }
+.empty-state {
+  text-align: center;
+  padding: 36px 16px !important;
+  color: #64748b !important;
+  border: 1px dashed rgba(124,58,237,0.22);
+  border-radius: 14px;
+  background: linear-gradient(160deg,#fff,#f5f3ff);
+}
+
+/* Round 59 */
+.default-avatar {
+  background: linear-gradient(135deg, #7c3aed, #ec4899) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+}
+.character-item {
+  border-radius: 12px !important;
+  border: 1px solid rgba(124,58,237,0.12) !important;
+  transition: all 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.character-item:hover {
+  border-color: rgba(124,58,237,0.35) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(124,58,237,0.1);
+}
+
+/* Round 172 */
+.card-header span { letter-spacing: 0.01em; }
+
+/* Round 315 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 444 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 573 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 652 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Round 728 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 778 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 864 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 1050 */
+.character-item:active {
+  transform: scale(0.995);
 }
 </style> 

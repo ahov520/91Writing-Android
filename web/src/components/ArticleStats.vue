@@ -65,7 +65,7 @@
               <div class="chart-label">中性情感</div>
               <el-progress 
                 :percentage="sentimentData.neutral" 
-                color="#909399"
+                color="#64748b"
                 :show-text="false"
               />
               <span class="chart-value">{{ sentimentData.neutral }}%</span>
@@ -368,7 +368,7 @@ const exportStats = () => {
 .no-content {
   text-align: center;
   padding: 40px;
-  color: #909399;
+  color: #64748b;
 }
 
 .empty-icon {
@@ -401,7 +401,7 @@ const exportStats = () => {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .stat-card {
@@ -415,13 +415,13 @@ const exportStats = () => {
 .stat-number {
   font-size: 24px;
   font-weight: bold;
-  color: #409eff;
+  color: #7c3aed;
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .sentiment-analysis {
@@ -459,7 +459,7 @@ const exportStats = () => {
   margin-left: 12px;
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .tags-container {
@@ -493,7 +493,7 @@ const exportStats = () => {
 
 .score-number {
   font-size: 14px;
-  color: #909399;
+  color: #64748b;
 }
 
 .suggestions {
@@ -507,13 +507,13 @@ const exportStats = () => {
   padding: 12px;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 4px solid #409eff;
+  border-left: 4px solid #7c3aed;
 }
 
 .suggestion-icon {
   margin-right: 12px;
   margin-top: 2px;
-  color: #409eff;
+  color: #7c3aed;
 }
 
 .suggestion-content {
@@ -523,7 +523,7 @@ const exportStats = () => {
 .suggestion-title {
   font-weight: 500;
   margin-bottom: 4px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .suggestion-text {
@@ -542,12 +542,12 @@ const exportStats = () => {
   background: #f8f9fa;
   padding: 16px;
   border-radius: 8px;
-  border-left: 4px solid #409eff;
+  border-left: 4px solid #7c3aed;
 }
 
 .analysis-summary h4 {
   margin: 0 0 8px 0;
-  color: #303133;
+  color: #1e1b4b;
   font-size: 16px;
 }
 
@@ -558,15 +558,15 @@ const exportStats = () => {
 }
 
 .analysis-section {
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 12px;
   height: 100%;
 }
 
 .analysis-section h5 {
   margin: 0 0 8px 0;
-  color: #409eff;
+  color: #7c3aed;
   font-size: 14px;
   font-weight: 600;
 }
@@ -593,5 +593,68 @@ const exportStats = () => {
 :deep(.el-rate) {
   display: flex;
   align-items: center;
+}
+
+/* Round 13 stats */
+
+.stat-card, .stats-item {
+  border-radius: 14px !important;
+}
+
+
+/* Round 77 */
+.stats-overview .stat-value {
+  font-weight: 800;
+  color: #7c3aed;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Round 164 */
+:deep(.el-button) { font-weight: 700; }
+
+/* Round 276 */
+:deep(.el-card){border-radius:14px!important;}
+
+/* Round 366 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 435 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 516 */
+:deep(.el-empty) {
+  padding: 24px 8px;
+}
+
+/* Round 724 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 774 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 860 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 917 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 1001 residual brand pass */
+
+/* Round 1147 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
 }
 </style>

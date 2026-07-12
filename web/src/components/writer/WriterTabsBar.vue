@@ -34,9 +34,11 @@ const handleTabChange = (tabName) => {
 
 <style scoped>
 .tabs-bar {
-  background: white;
-  border-bottom: 1px solid #e4e7ed;
-  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+  padding: 0 20px;
 }
 
 .main-tabs {
@@ -50,4 +52,52 @@ const handleTabChange = (tabName) => {
 :deep(.el-tabs__nav-wrap::after) {
   display: none;
 }
-</style> 
+
+:deep(.el-tabs__item) {
+  font-weight: 700;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: #7c3aed !important;
+}
+
+:deep(.el-tabs__active-bar) {
+  background: linear-gradient(90deg, #7c3aed, #ec4899) !important;
+  height: 3px !important;
+  border-radius: 3px;
+}
+
+/* Round 176 */
+.card-header span { letter-spacing: 0.01em; }
+
+/* Round 320 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 448 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 732 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 782 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 868 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 1144 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
+}
+</style>

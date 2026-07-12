@@ -1,28 +1,34 @@
 <template>
   <div class="home-page">
-    <!-- 欢迎区域 -->
-    <div class="welcome-section">
-      <el-card class="welcome-card" shadow="never">
+    <!-- Hero 欢迎区 -->
+    <section class="welcome-section anim-fade-up">
+      <div class="welcome-card">
+        <div class="welcome-orb orb-a" aria-hidden="true"></div>
+        <div class="welcome-orb orb-b" aria-hidden="true"></div>
         <div class="welcome-content">
           <div class="welcome-text">
-            <h1>欢迎回来！</h1>
-            <p>开始您的创作之旅，让AI助力您的小说创作</p>
+            <span class="welcome-badge">AI Novel Studio</span>
+            <h1>欢迎回来，开始今日创作</h1>
+            <p>墨韵紫金 · 用 AI 续写灵感，把每一章写得更精彩</p>
           </div>
           <div class="welcome-actions">
-            <el-button type="primary" size="large" @click="createNovel">
+            <el-button type="primary" size="large" class="btn-brand hero-cta" @click="createNovel">
               <el-icon><Plus /></el-icon>
               创建新小说
             </el-button>
+            <el-button size="large" class="hero-secondary" @click="viewAllNovels">
+              浏览作品库
+            </el-button>
           </div>
         </div>
-      </el-card>
-    </div>
+      </div>
+    </section>
 
     <!-- 统计概览 -->
-    <div class="stats-section">
-      <el-row :gutter="20">
+    <section class="stats-section">
+      <el-row :gutter="16">
         <el-col :xs="12" :sm="12" :md="12" :lg="6" :xl="6">
-          <el-card class="stat-card" shadow="hover">
+          <div class="stat-card anim-fade-up anim-delay-1">
             <div class="stat-item">
               <div class="stat-icon novels">
                 <el-icon><Document /></el-icon>
@@ -32,11 +38,11 @@
                 <div class="stat-label">总小说数</div>
               </div>
             </div>
-          </el-card>
+          </div>
         </el-col>
-        
+
         <el-col :xs="12" :sm="12" :md="12" :lg="6" :xl="6">
-          <el-card class="stat-card" shadow="hover">
+          <div class="stat-card anim-fade-up anim-delay-2">
             <div class="stat-item">
               <div class="stat-icon words">
                 <el-icon><EditPen /></el-icon>
@@ -46,11 +52,11 @@
                 <div class="stat-label">总字数</div>
               </div>
             </div>
-          </el-card>
+          </div>
         </el-col>
-        
+
         <el-col :xs="12" :sm="12" :md="12" :lg="6" :xl="6">
-          <el-card class="stat-card" shadow="hover">
+          <div class="stat-card anim-fade-up anim-delay-3">
             <div class="stat-item">
               <div class="stat-icon chapters">
                 <el-icon><Notebook /></el-icon>
@@ -60,43 +66,41 @@
                 <div class="stat-label">总章节数</div>
               </div>
             </div>
-          </el-card>
+          </div>
         </el-col>
-        
+
         <el-col :xs="12" :sm="12" :md="12" :lg="6" :xl="6">
-          <el-card class="stat-card" shadow="hover">
+          <div class="stat-card anim-fade-up anim-delay-4">
             <div class="stat-item">
               <div class="stat-icon tokens">
                 <el-icon><CreditCard /></el-icon>
               </div>
               <div class="stat-content">
                 <div class="stat-number">{{ formatNumber(stats.totalTokens) }}</div>
-                <div class="stat-label">已用Token</div>
+                <div class="stat-label">已用 Token</div>
               </div>
             </div>
-          </el-card>
+          </div>
         </el-col>
       </el-row>
-    </div>
+    </section>
 
-    <!-- 主要内容区域 -->
-    <el-row :gutter="20" class="main-content">
-      <!-- 左侧：写作目标 -->
+    <!-- 目标 + 快速操作 -->
+    <el-row :gutter="16" class="main-content">
       <el-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
-        <el-card class="goals-card" shadow="hover">
+        <el-card class="goals-card panel-card" shadow="never">
           <template #header>
             <div class="card-header">
-              <span>📝 今日写作目标</span>
-              <el-button type="text" @click="showGoalsDialog = true">
+              <span class="page-section-title">今日写作目标</span>
+              <el-button type="primary" link @click="showGoalsDialog = true">
                 管理目标
               </el-button>
             </div>
           </template>
-          
+
           <div class="goals-content">
-            <!-- 动态显示目标 -->
-            <div 
-              v-for="goal in displayedGoals" 
+            <div
+              v-for="goal in displayedGoals"
               :key="goal.id"
               class="goal-item"
             >
@@ -105,69 +109,84 @@
                 <span class="goal-value">{{ goal.targetValue }}{{ goal.unit }}</span>
               </div>
               <div class="goal-progress">
-                <el-progress 
-                  :percentage="getGoalProgress(goal)" 
-                  :color="getProgressColor(getGoalProgress(goal))"
-                  :stroke-width="8"
+                <el-progress
+                  :percentage="getGoalProgress(goal)"
+                  :stroke-width="10"
                   :show-text="false"
                 />
                 <span class="progress-text">{{ goal.currentValue }}{{ goal.unit }} / {{ goal.targetValue }}{{ goal.unit }}</span>
               </div>
             </div>
-            
-            <!-- 如果没有目标时显示默认内容 -->
+
             <div v-if="displayedGoals.length === 0" class="no-goals">
-              <el-empty description="暂无活跃目标" size="small">
+              <el-empty description="暂无活跃目标" :image-size="72">
                 <el-button type="primary" size="small" @click="showGoalsDialog = true">
                   创建目标
                 </el-button>
               </el-empty>
             </div>
-            
-            <!-- 查看全部目标按钮 -->
+
             <div v-if="totalActiveGoals > maxDisplayGoals" class="view-all-goals">
-              <el-button type="text" size="small" @click="showGoalsDialog = true">
+              <el-button type="primary" link size="small" @click="showGoalsDialog = true">
                 查看全部 {{ totalActiveGoals }} 个目标 →
               </el-button>
             </div>
-            
+
             <div class="streak-info" v-if="displayedGoals.length > 0">
               <el-icon class="streak-icon"><Trophy /></el-icon>
-              <span>连续写作 {{ calculateStreak() }} 天</span>
+              <span>连续写作 {{ calculateStreak() }} 天 · 保持节奏</span>
             </div>
           </div>
         </el-card>
       </el-col>
-      
-      <!-- 右侧：快速操作 -->
+
       <el-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
-        <el-card class="quick-actions-card" shadow="hover">
+        <el-card class="quick-actions-card panel-card" shadow="never">
           <template #header>
-            <span>🚀 快速操作</span>
+            <span class="page-section-title">快速操作</span>
           </template>
-          
+
           <div class="quick-actions">
             <div class="action-grid">
-              <div class="action-item" @click="openPrompts">
-                <div class="action-icon">
+              <button type="button" class="action-item" @click="openPrompts">
+                <div class="action-icon prompts">
                   <el-icon><ChatLineSquare /></el-icon>
                 </div>
-                <span>提示词库</span>
-              </div>
-              
-              <div class="action-item" @click="openChapters">
-                <div class="action-icon">
+                <div class="action-copy">
+                  <span class="action-title">提示词库</span>
+                  <span class="action-desc">大纲 · 润色 · 对话</span>
+                </div>
+              </button>
+
+              <button type="button" class="action-item" @click="openChapters">
+                <div class="action-icon chapters">
                   <el-icon><Notebook /></el-icon>
                 </div>
-                <span>章节管理</span>
-              </div>
-              
-              <div class="action-item" @click="openBilling">
-                <div class="action-icon">
+                <div class="action-copy">
+                  <span class="action-title">章节管理</span>
+                  <span class="action-desc">结构 · 进度 · 导出</span>
+                </div>
+              </button>
+
+              <button type="button" class="action-item" @click="openBilling">
+                <div class="action-icon billing">
                   <el-icon><CreditCard /></el-icon>
                 </div>
-                <span>Token计费</span>
-              </div>
+                <div class="action-copy">
+                  <span class="action-title">Token 计费</span>
+                  <span class="action-desc">用量 · 成本洞察</span>
+                </div>
+              </button>
+
+              <button type="button" class="action-item" @click="createNovel">
+                <div class="action-icon write">
+                  <el-icon><EditPen /></el-icon>
+                </div>
+                <div class="action-copy">
+                  <span class="action-title">写作工坊</span>
+                  <span class="action-desc">开新篇 · 续写</span>
+                </div>
+              </button>
             </div>
           </div>
         </el-card>
@@ -175,20 +194,20 @@
     </el-row>
 
     <!-- 最近小说 -->
-    <div class="recent-novels-section">
-      <el-card class="recent-novels-card" shadow="hover">
+    <section class="recent-novels-section">
+      <el-card class="recent-novels-card panel-card" shadow="never">
         <template #header>
           <div class="card-header">
-            <span>📚 最近编辑的小说</span>
-            <el-button type="text" @click="viewAllNovels">
+            <span class="page-section-title">最近编辑</span>
+            <el-button type="primary" link @click="viewAllNovels">
               查看全部
             </el-button>
           </div>
         </template>
-        
+
         <div class="novels-list">
-          <div 
-            v-for="novel in recentNovels" 
+          <div
+            v-for="novel in recentNovels"
             :key="novel.id"
             class="novel-item"
             @click="openNovel(novel)"
@@ -201,29 +220,28 @@
             </div>
             <div class="novel-info">
               <h4 class="novel-title">{{ novel.title }}</h4>
-              <p class="novel-desc">{{ novel.description }}</p>
+              <p class="novel-desc">{{ novel.description || '暂无简介，点击继续创作' }}</p>
               <div class="novel-meta">
-                <span class="word-count">{{ formatNumber(novel.wordCount) }} 字</span>
-                <span class="update-time">{{ formatTime(novel.updatedAt) }}</span>
+                <span class="meta-chip">{{ formatNumber(novel.wordCount) }} 字</span>
+                <span class="meta-chip muted">{{ formatTime(novel.updatedAt) }}</span>
               </div>
             </div>
             <div class="novel-actions">
-              <el-button type="text" size="small">
+              <el-button type="primary" plain size="small" class="continue-btn">
                 继续写作
               </el-button>
             </div>
           </div>
-          
+
           <div v-if="recentNovels.length === 0" class="empty-novels">
             <el-empty description="暂无小说，开始创作您的第一部作品吧！">
-              <el-button type="primary" @click="createNovel">创建小说</el-button>
+              <el-button type="primary" class="btn-brand" @click="createNovel">创建小说</el-button>
             </el-empty>
           </div>
         </div>
       </el-card>
-    </div>
+    </section>
 
-    <!-- 写作目标管理对话框 -->
     <el-dialog
       v-model="showGoalsDialog"
       title="写作目标管理"
@@ -397,7 +415,7 @@ const formatTime = (date) => {
 const getProgressColor = (percentage) => {
   if (percentage >= 100) return '#67c23a'
   if (percentage >= 80) return '#e6a23c'
-  if (percentage >= 60) return '#409eff'
+  if (percentage >= 60) return '#7c3aed'
   return '#f56c6c'
 }
 
@@ -468,88 +486,199 @@ onUnmounted(() => {
 
 <style scoped>
 .home-page {
-  --primary-1: #5a606b;
-  --primary-2: #3e4552;
-  --surface-glass: rgba(255, 255, 255, 0.96);
-  --card-border: #e5e7eb;
   padding: 0;
   max-width: 100%;
 }
 
-.welcome-section { margin-bottom: 20px; }
-
-.welcome-card {
-  background: linear-gradient(135deg, #40454f 0%, #5a606b 45%, #2d323a 100%);
-  border: none;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 18px 36px rgba(17, 24, 39, 0.28);
+/* Hero */
+.welcome-section {
+  margin-bottom: 18px;
 }
 
-.welcome-card :deep(.el-card__body) { padding: 40px; }
+.welcome-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  padding: 36px 40px;
+  color: #fff;
+  background: var(--grad-hero);
+  box-shadow: 0 24px 48px rgba(76, 29, 149, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.welcome-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.orb-a {
+  width: 220px;
+  height: 220px;
+  right: -40px;
+  top: -60px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.55), transparent 70%);
+}
+
+.orb-b {
+  width: 180px;
+  height: 180px;
+  left: 18%;
+  bottom: -80px;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.45), transparent 70%);
+}
 
 .welcome-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: white;
+  gap: 24px;
 }
 
-.welcome-text h1 { margin: 0 0 10px 0; font-size: 32px; font-weight: 700; }
-.welcome-text p { margin: 0; font-size: 16px; opacity: 0.92; }
-.welcome-actions { display: flex; gap: 15px; }
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  margin-bottom: 12px;
+}
 
-.stats-section { margin-bottom: 20px; }
+.welcome-text h1 {
+  margin: 0 0 10px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.welcome-text p {
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.92;
+  max-width: 420px;
+  line-height: 1.55;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.hero-cta {
+  height: 46px;
+  padding: 0 22px !important;
+  border-radius: 14px !important;
+  border: none !important;
+}
+
+.hero-secondary {
+  height: 46px;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.hero-secondary:hover {
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Stats */
+.stats-section {
+  margin-bottom: 18px;
+}
+
+.stats-section :deep(.el-col) {
+  margin-bottom: 12px;
+}
 
 .stat-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: var(--surface-glass);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-  transition: transform 0.3s, box-shadow 0.3s;
+  height: 100%;
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
 }
 
 .stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(124, 58, 237, 0.22);
 }
 
-.stat-item { display: flex; align-items: center; gap: 15px; }
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .stat-icon {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   color: white;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.22);
 }
 
-.stat-icon.novels { background: linear-gradient(135deg, #6b7280, #4b5563); }
-.stat-icon.words { background: linear-gradient(135deg, #9ca3af, #6b7280); }
-.stat-icon.chapters { background: linear-gradient(135deg, #6b7280, #374151); }
-.stat-icon.tokens { background: linear-gradient(135deg, #4b5563, #1f2937); }
+.stat-icon.novels { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+.stat-icon.words { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+.stat-icon.chapters { background: linear-gradient(135deg, #06b6d4, #0ea5e9); }
+.stat-icon.tokens { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
 
-.stat-content { flex: 1; }
-.stat-number { font-size: 24px; font-weight: 700; color: #303133; line-height: 1; }
-.stat-label { font-size: 14px; color: #909399; margin-top: 5px; }
+.stat-number {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e1b4b;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
 
-.main-content { margin-bottom: 20px; }
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-weight: 600;
+}
 
-.goals-card,
-.quick-actions-card,
-.recent-novels-card {
-  border-radius: 16px;
-  border: 1px solid var(--card-border);
-  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.08);
+/* Panels */
+.main-content {
+  margin-bottom: 18px;
+}
+
+.panel-card {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid rgba(124, 58, 237, 0.1) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  box-shadow: var(--shadow-sm) !important;
+  overflow: hidden;
 }
 
 .goals-card,
 .quick-actions-card {
   height: 100%;
-  min-height: 380px;
+  min-height: 360px;
+  margin-bottom: 12px;
 }
 
 .goals-card :deep(.el-card__body),
@@ -559,264 +688,728 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
-.goals-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  min-height: 300px;
-  padding: 10px 0;
-}
-
-.quick-actions {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 10px 0;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 700;
+  gap: 12px;
+}
+
+.goals-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
 }
 
 .goal-item {
-  margin-bottom: 14px;
-  padding: 15px;
-  background: linear-gradient(140deg, #fafafa 0%, #f3f4f6 100%);
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(145deg, #faf8ff 0%, #f3f0ff 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
 }
 
-.goal-item:last-child { margin-bottom: 8px; }
-.goal-info { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
-.goal-label { font-size: 14px; color: #606266; }
-.goal-value { font-size: 14px; font-weight: 600; color: #303133; }
-.goal-progress { position: relative; }
-.progress-text { display: block; text-align: right; font-size: 12px; color: #909399; margin-top: 5px; line-height: 1; }
+.goal-item:hover {
+  border-color: rgba(124, 58, 237, 0.28);
+  transform: translateY(-1px);
+}
+
+.goal-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.goal-label {
+  font-size: 14px;
+  color: var(--text-regular);
+  font-weight: 600;
+}
+
+.goal-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #6d28d9;
+  white-space: nowrap;
+}
+
+.progress-text {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  font-weight: 600;
+}
 
 .streak-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px;
-  background: linear-gradient(145deg, #f8fafc, #f1f5f9);
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(251, 191, 36, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: 12px;
   margin-top: auto;
-  margin-bottom: 0;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.streak-icon { color: #f39c12; font-size: 18px; }
-.no-goals { padding: 20px; text-align: center; }
-.view-all-goals { text-align: center; padding: 10px; border-top: 1px solid #f0f0f0; margin-top: 10px; }
-.view-all-goals .el-button { color: #4b5563; font-size: 12px; }
+.streak-icon {
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+.no-goals {
+  padding: 12px;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-all-goals {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+/* Quick actions */
+.quick-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
 .action-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  height: 100%;
-  align-content: start;
+  gap: 12px;
 }
 
 .action-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s;
-  min-height: 100px;
-  justify-content: center;
-  background: linear-gradient(145deg, #ffffff 0%, #f3f4f6 100%);
+  transition: all var(--dur) var(--ease-out);
+  min-height: 88px;
+  background: linear-gradient(160deg, #ffffff 0%, #f8f6ff 100%);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  width: 100%;
 }
 
 .action-item:hover {
-  border-color: #6b7280;
-  background: linear-gradient(140deg, #f3f4f6, #e5e7eb);
-  transform: translateY(-2px);
+  border-color: rgba(124, 58, 237, 0.35);
+  background: linear-gradient(160deg, #faf8ff, #f0ecff);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.12);
 }
 
 .action-icon {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #4b5563, #1f2937);
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
 }
 
-.recent-novels-section { margin-bottom: 20px; }
-.novels-list { display: flex; flex-direction: column; gap: 12px; }
+.action-icon.prompts { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+.action-icon.chapters { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
+.action-icon.billing { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.action-icon.write { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+
+.action-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.action-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+
+.action-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Recent novels */
+.recent-novels-section {
+  margin-bottom: 8px;
+}
+
+.novels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
 .novel-item {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 15px;
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s;
-  background: linear-gradient(145deg, #ffffff 0%, #f9fbff 100%);
+  transition: all var(--dur) var(--ease-out);
+  background: linear-gradient(145deg, #ffffff 0%, #faf8ff 100%);
 }
 
 .novel-item:hover {
-  border-color: #6b7280;
-  background: linear-gradient(140deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-color: rgba(124, 58, 237, 0.32);
+  background: linear-gradient(145deg, #faf8ff, #f3f0ff);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.1);
 }
 
-.novel-cover { width: 60px; height: 80px; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
-.novel-cover img { width: 100%; height: 100%; object-fit: cover; }
-.default-cover { width: 100%; height: 100%; background: #f5f7fa; display: flex; align-items: center; justify-content: center; color: #c0c4cc; font-size: 24px; }
-.novel-info { flex: 1; min-width: 0; }
-.novel-title { margin: 0 0 5px 0; font-size: 16px; font-weight: 600; color: #303133; }
-.novel-desc { margin: 0 0 8px 0; font-size: 14px; color: #606266; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.novel-meta { display: flex; flex-wrap: wrap; gap: 15px; font-size: 12px; color: #909399; }
-.novel-actions .el-button { padding: 0; }
-.novel-actions { flex-shrink: 0; }
-.empty-novels { padding: 40px 0; }
+.novel-cover {
+  width: 56px;
+  height: 74px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+}
+
+.novel-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-cover {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #ede9fe, #ddd6fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7c3aed;
+  font-size: 22px;
+}
+
+.novel-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.novel-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+
+.novel-desc {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--text-regular);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.novel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  color: #6d28d9;
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.meta-chip.muted {
+  color: var(--text-secondary);
+  background: rgba(100, 116, 139, 0.1);
+}
+
+.novel-actions {
+  flex-shrink: 0;
+}
+
+.continue-btn {
+  border-radius: 10px !important;
+  font-weight: 700;
+}
+
+.empty-novels {
+  padding: 28px 0;
+}
 
 @media (max-width: 1024px) {
-  .welcome-card :deep(.el-card__body) { padding: 32px; }
-  .welcome-content { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .welcome-actions { width: 100%; justify-content: flex-start; }
-  .stats-section .el-col { margin-bottom: 14px; }
-  .goals-card,
-  .quick-actions-card { min-height: auto; }
-}
-
-@media (max-width: 768px) {
-  .main-content,
-  .stats-section { margin-bottom: 12px; }
-
   .welcome-card {
-    border-radius: 16px;
-    box-shadow: 0 12px 26px rgba(17, 24, 39, 0.24);
+    padding: 28px 24px;
   }
 
-  .welcome-card :deep(.el-card__body) { padding: 24px 18px; }
-
-  .welcome-content { text-align: left; gap: 16px; }
-
-  .welcome-text h1 {
-    font-size: 24px;
-    margin-bottom: 6px;
-  }
-
-  .welcome-text p {
-    font-size: 14px;
-    line-height: 1.6;
+  .welcome-content {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .welcome-actions {
     width: 100%;
-    justify-content: stretch;
+    flex-wrap: wrap;
   }
 
-  .welcome-actions :deep(.el-button) {
-    width: 100%;
-    height: 42px;
-    border-radius: 12px;
+  .goals-card,
+  .quick-actions-card {
+    min-height: auto;
   }
+}
 
-  .stats-section :deep(.el-row) {
-    margin-left: -6px !important;
-    margin-right: -6px !important;
-  }
-
-  .stats-section :deep(.el-col) {
-    padding-left: 6px !important;
-    padding-right: 6px !important;
+@media (max-width: 768px) {
+  .welcome-section,
+  .stats-section,
+  .main-content {
     margin-bottom: 12px;
   }
 
-  .stat-card :deep(.el-card__body) { padding: 14px 12px; }
-  .stat-item { gap: 10px; }
+  .welcome-card {
+    padding: 22px 18px;
+    border-radius: var(--radius-lg);
+  }
+
+  .welcome-text h1 {
+    font-size: 22px;
+  }
+
+  .welcome-text p {
+    font-size: 13px;
+  }
+
+  .welcome-actions :deep(.el-button) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stat-card {
+    padding: 14px 12px;
+  }
+
   .stat-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    border-radius: 12px;
+  }
+
+  .stat-number {
     font-size: 18px;
   }
-  .stat-number { font-size: 18px; }
-  .stat-label { font-size: 12px; margin-top: 3px; }
 
-  .goals-card,
-  .quick-actions-card,
-  .recent-novels-card { border-radius: 14px; }
+  .stat-label {
+    font-size: 12px;
+  }
 
-  .goals-content { min-height: auto; }
-
-  .action-grid { grid-template-columns: 1fr; gap: 10px; }
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
 
   .action-item {
     min-height: 72px;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 12px;
     padding: 12px 14px;
   }
 
-  .action-icon {
-    width: 34px;
-    height: 34px;
-    font-size: 15px;
-    flex-shrink: 0;
-  }
-
-  .action-item span { font-size: 14px; font-weight: 600; }
-
   .novel-item {
-    align-items: flex-start;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 12px;
     padding: 12px;
-    border-radius: 10px;
   }
 
-  .novel-title { font-size: 15px; }
-  .novel-desc { font-size: 13px; }
-  .novel-meta { gap: 10px; }
-
-  .novel-actions { width: 100%; }
-  .novel-actions .el-button {
+  .novel-actions {
     width: 100%;
-    justify-content: center;
-    padding: 8px 0;
-    border: 1px solid #e4e7ed;
-    border-radius: 8px;
-    margin-top: 4px;
+  }
+
+  .continue-btn {
+    width: 100%;
   }
 }
 
 @media (max-width: 576px) {
-  .welcome-section { margin-bottom: 12px; }
-  .recent-novels-section { margin-bottom: 8px; }
-
-  .home-page :deep(.el-card__header) {
-    padding: 12px 14px;
+  .goal-info {
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .home-page :deep(.el-card__body) {
-    padding: 12px 14px;
+  .progress-text {
+    text-align: left;
   }
 
-  .goal-item { padding: 12px; }
-  .goal-info { flex-direction: column; gap: 6px; }
-  .progress-text { text-align: left; line-height: 1.4; }
+  .novel-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-  .novel-item { flex-direction: column; }
-  .novel-cover { width: 50px; height: 66px; }
-  .novel-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .novel-cover {
+    width: 48px;
+    height: 64px;
+  }
 }
+
+/* Round 20 home */
+@media (max-width: 1024px) {
+  .home-page {
+    padding-bottom: 12px;
+  }
+  .welcome-badge {
+    font-size: 10px;
+  }
+}
+
+/* Round 29 hero */
+@media (max-width: 480px) {
+  .welcome-actions {
+    flex-direction: column;
+  }
+  .welcome-actions :deep(.el-button) {
+    width: 100%;
+  }
+  .orb-a, .orb-b { opacity: 0.35; }
+}
+
+/* Round 43 */
+.stat-number {
+  font-variant-numeric: tabular-nums;
+}
+.novel-item:active {
+  transform: scale(0.995);
+}
+
+/* Round 71 */
+.streak-icon {
+  filter: drop-shadow(0 0 8px rgba(245,158,11,0.45));
+}
+.goal-item .el-progress {
+  margin-top: 2px;
+}
+
+/* Round 104 */
+.action-item:focus-visible {
+  outline: 2px solid rgba(124,58,237,0.45);
+  outline-offset: 2px;
+}
+.stat-card:focus-within {
+  border-color: rgba(124,58,237,0.28);
+}
+
+/* Round 132 */
+:deep(.el-button--primary.is-plain) {
+  --el-button-bg-color: rgba(124,58,237,0.08);
+  --el-button-border-color: rgba(124,58,237,0.25);
+  --el-button-text-color: #6d28d9;
+  font-weight: 700;
+}
+
+/* Round 181 */
+.default-cover {
+  box-shadow: inset 0 0 0 1px rgba(124,58,237,0.12);
+}
+.welcome-card {
+  animation: fade-up 0.55s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Round 193 */
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-weight: 500;
+}
+
+/* Round 202 */
+.goals-card :deep(.el-progress__text){font-weight:800;}
+
+/* Round 231 */
+.welcome-badge {
+  backdrop-filter: blur(8px);
+}
+.hero-cta:active {
+  transform: scale(0.98);
+}
+
+/* Round 252 */
+.panel-card{overflow:hidden;} .panel-card :deep(.el-card__header){position:relative;}
+
+/* Round 313 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 332 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 381 */
+.empty-novels :deep(.el-empty__image) {
+  opacity: 0.9;
+}
+.continue-btn:hover {
+  transform: translateY(-1px);
+}
+.meta-chip {
+  transition: background 0.2s ease;
+}
+.novel-item:hover .meta-chip {
+  background: rgba(124,58,237,0.16);
+}
+
+/* Round 403 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 451 */
+.novel-item:focus-visible,
+.action-item:focus-visible {
+  outline: 2px solid rgba(124,58,237,0.5);
+  outline-offset: 2px;
+}
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(124,58,237,0.06);
+  pointer-events: none;
+}
+
+/* Round 488 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+
+/* Round 509 */
+.goal-progress :deep(.el-progress-bar__outer) {
+  background: rgba(124,58,237,0.1) !important;
+}
+
+/* Round 525 */
+.welcome-actions :deep(.el-button) {
+  font-weight: 800;
+}
+
+/* Round 544 */
+.action-desc{opacity:.9;}
+.action-item:active{transform:scale(.99);}
+
+/* Round 568 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 602 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 637 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+/* Round 671 */
+.streak-info{font-variant-numeric:tabular-nums;}
+
+/* Round 702 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 741 */
+@media (prefers-reduced-motion: reduce) {
+  .welcome-card,
+  .stat-card,
+  .anim-fade-up {
+    animation: none !important;
+  }
+  .welcome-orb {
+    display: none;
+  }
+}
+
+/* Round 763 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 799 */
+.novel-cover {
+  background: linear-gradient(145deg, #ede9fe, #ddd6fe);
+}
+.novel-item:hover .default-cover {
+  background: linear-gradient(145deg, #ddd6fe, #c4b5fd);
+  color: #5b21b6;
+}
+/* Round 800 */
+.welcome-text h1 {
+  text-wrap: balance;
+}
+
+/* Round 839 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 897 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 959 */
+.welcome-text h1 {
+  max-width: 16ch;
+}
+@media (max-width: 768px) {
+  .welcome-text h1 { max-width: none; }
+}
+/* Round 960 */
+.stat-card::after {
+  transition: transform 0.4s ease;
+}
+.stat-card:hover::after {
+  transform: scale(1.2);
+}
+
+/* Round 983 */
+.home-page {
+  min-width: 0;
+}
+
+
+/* Round 1021 */
+.goal-item .goal-label {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Round 1022 */
+.action-grid {
+  align-content: stretch;
+}
+/* Round 1023 */
+.recent-novels-card :deep(.el-card__body) {
+  padding-top: 12px;
+}
+/* Round 1024 */
+@media (max-width: 480px) {
+  .stat-number {
+    font-size: 17px;
+  }
+  .welcome-badge {
+    margin-bottom: 10px;
+  }
+}
+/* Round 1025 */
+.panel-card :deep(.el-card__header) {
+  padding: 14px 16px;
+}
+
+/* Round 1116 */
+.welcome-card {
+  isolation: isolate;
+}
+/* Round 1117 */
+.stat-content {
+  min-width: 0;
+}
+/* Round 1118 */
+.novel-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Round 1119 */
+.no-goals :deep(.el-empty) {
+  padding: 12px 0;
+}
+/* Round 1120 */
+.view-all-goals {
+  margin-top: 4px;
+}
+/* Round 1121 */
+.hero-cta :deep(span) {
+  font-weight: 800;
+}
+/* Round 1122 */
+@media (max-width: 768px) {
+  .main-content .el-col {
+    margin-bottom: 12px;
+  }
+}
+/* Round 1123 */
+.action-copy {
+  min-width: 0;
+}
+/* Round 1124 */
+.meta-chip {
+  max-width: 100%;
+}
+/* Round 1125 */
+.streak-info span {
+  min-width: 0;
+}
+
+/* Round 1191 */
+.welcome-orb {
+  will-change: transform;
+}
+/* Round 1192 */
+.stat-icon {
+  position: relative;
+  z-index: 1;
+}
+/* Round 1193 */
+.goal-progress {
+  width: 100%;
+}
+/* Round 1194 */
+.continue-btn {
+  white-space: nowrap;
+}
+/* Round 1195 */
+.empty-novels :deep(.el-button) {
+  min-width: 120px;
+}
+
+
+/* Round 1219 */
+.home-page {
+  -webkit-font-smoothing: antialiased;
+}
+
 </style>

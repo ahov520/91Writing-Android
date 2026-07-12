@@ -502,7 +502,7 @@ onMounted(() => {
 .stat-number {
   font-size: 24px;
   font-weight: bold;
-  color: #409eff;
+  color: #7c3aed;
   margin-bottom: 4px;
 }
 
@@ -518,22 +518,22 @@ onMounted(() => {
 }
 
 .chapter-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid rgba(124, 58, 237, 0.12);
   border-radius: 8px;
   padding: 16px;
   cursor: pointer;
   transition: all 0.3s;
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .chapter-card:hover {
-  border-color: #409eff;
+  border-color: #7c3aed;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 .chapter-card.selected {
-  border-color: #409eff;
-  background: #f0f9ff;
+  border-color: #7c3aed;
+  background: #faf5ff;
 }
 
 .chapter-header {
@@ -545,17 +545,17 @@ onMounted(() => {
 
 .chapter-number {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   background: #f4f4f5;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 10px;
 }
 
 .chapter-title {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 8px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .chapter-summary {
@@ -574,7 +574,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .meta-item {
@@ -605,13 +605,13 @@ onMounted(() => {
 
 .content-section h4 {
   margin-bottom: 8px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .content-preview {
   background: #f8f9fa;
   padding: 12px;
-  border-radius: 4px;
+  border-radius: 10px;
   max-height: 200px;
   overflow-y: auto;
   line-height: 1.6;
@@ -624,5 +624,74 @@ onMounted(() => {
 
 .mr-2 {
   margin-right: 8px;
+}
+
+/* Round 13 chapter mgr */
+
+.chapter-item {
+  border-radius: 12px !important;
+  border: 1px solid rgba(124,58,237,0.12) !important;
+  transition: all 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.chapter-item:hover, .chapter-item.active {
+  border-color: rgba(124,58,237,0.35) !important;
+  background: #faf5ff !important;
+}
+
+
+/* Round 124 */
+.chapter-title { font-weight: 800; color: #1e1b4b; }
+
+/* Round 166 */
+:deep(.el-button) { font-weight: 700; }
+
+/* Round 274 */
+:deep(.el-card){border-radius:14px!important;}
+
+/* Round 350 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 437 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 513 */
+:deep(.el-empty) {
+  padding: 24px 8px;
+}
+
+/* Round 660 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Round 722 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 772 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 858 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 915 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 1048 */
+.chapter-item.active {
+  border-color: rgba(124,58,237,0.4) !important;
 }
 </style>

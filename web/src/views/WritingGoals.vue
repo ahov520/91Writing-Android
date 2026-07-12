@@ -566,7 +566,7 @@ const getGoalTypeText = (type) => {
 const getProgressColor = (ratio) => {
   if (ratio >= 1) return '#67c23a'
   if (ratio >= 0.8) return '#e6a23c'
-  if (ratio >= 0.5) return '#409eff'
+  if (ratio >= 0.5) return '#7c3aed'
   return '#f56c6c'
 }
 
@@ -771,20 +771,13 @@ onMounted(() => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* global design-system page-header */
 }
 
 .header-content h1 {
   margin: 0 0 5px 0;
   font-size: 24px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .header-content p {
@@ -819,7 +812,7 @@ onMounted(() => {
 }
 
 .overview-icon.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
 }
 
 .overview-icon.completed {
@@ -841,7 +834,7 @@ onMounted(() => {
 .overview-value {
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
   margin-bottom: 5px;
 }
 
@@ -856,7 +849,7 @@ onMounted(() => {
 
 .active-goals-section h2 {
   margin: 0 0 20px 0;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .goals-grid {
@@ -890,7 +883,7 @@ onMounted(() => {
 .goal-title h3 {
   margin: 0;
   font-size: 16px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .goal-description {
@@ -917,13 +910,13 @@ onMounted(() => {
 
 .progress-text {
   font-size: 14px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .progress-percentage {
   font-size: 14px;
   font-weight: 600;
-  color: #409eff;
+  color: #7c3aed;
 }
 
 .goal-timeline {
@@ -938,7 +931,7 @@ onMounted(() => {
 }
 
 .timeline-label {
-  color: #909399;
+  color: #64748b;
 }
 
 .text-danger {
@@ -963,7 +956,7 @@ onMounted(() => {
 
 .section-header h2 {
   margin: 0;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .filter-tabs {
@@ -1001,7 +994,7 @@ onMounted(() => {
 .history-title h4 {
   margin: 0;
   font-size: 16px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .history-description {
@@ -1014,7 +1007,7 @@ onMounted(() => {
   display: flex;
   gap: 20px;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .history-progress {
@@ -1032,12 +1025,12 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
 }
 
 .details-header h3 {
   margin: 0;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .details-content {
@@ -1053,7 +1046,7 @@ onMounted(() => {
 
 .detail-item label {
   font-weight: 500;
-  color: #303133;
+  color: #1e1b4b;
   min-width: 80px;
 }
 
@@ -1065,7 +1058,7 @@ onMounted(() => {
 
 .progress-chart h4 {
   margin: 0 0 15px 0;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .chart-placeholder {
@@ -1073,14 +1066,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border-radius: 6px;
-  color: #909399;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  color: #64748b;
 }
 
 .progress-history h4 {
   margin: 0 0 15px 0;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .history-timeline {
@@ -1098,7 +1091,7 @@ onMounted(() => {
 .timeline-date {
   flex-shrink: 0;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   min-width: 80px;
 }
 
@@ -1108,7 +1101,7 @@ onMounted(() => {
 
 .timeline-progress {
   font-size: 14px;
-  color: #409eff;
+  color: #7c3aed;
   font-weight: 500;
   margin-bottom: 3px;
 }
@@ -1149,4 +1142,183 @@ onMounted(() => {
     width: 100%;
   }
 }
+
+/* Round 5 goals polish */
+.goal-card, .goal-item, .stats-card {
+  border-radius: 14px !important;
+  border: 1px solid rgba(124,58,237,0.1) !important;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+.goal-card:hover, .goal-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(124,58,237,0.1);
+}
+.header-content h1 { font-weight: 800; font-size: 22px; }
+
+/* Round 18 goals depth */
+.goal-progress .el-progress-bar__inner {
+  background: linear-gradient(90deg, #7c3aed, #ec4899) !important;
+}
+
+/* Round 26 glass header force */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+}
+.header-content h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+.header-content p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Round 55 */
+.goals-grid .el-card {
+  border-radius: 16px !important;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.goals-grid .el-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Round 102 bulk radius/surface */
+
+/* Round 114 */
+.progress-ring, .goal-progress { margin-top: 6px; }
+
+
+/* Round 152 */
+:deep(.el-card) {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 198 */
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-weight: 500;
+}
+
+/* Round 208 */
+.goal-title{font-weight:800;color:#1e1b4b;}
+
+/* Round 244 */
+:deep(.el-dialog) {
+  border-radius: 18px !important;
+}
+@media (max-width: 768px) {
+  :deep(.el-dialog) {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Round 260 */
+.page-header .header-actions .el-button{border-radius:12px!important;}
+
+/* Round 302 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 336 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 379 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 414 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 482 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+
+/* Round 529 */
+.goal-card :deep(.el-progress-bar__inner) {
+  transition: width 0.45s cubic-bezier(0.22,1,0.36,1);
+}
+
+
+/* Round 566 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 612 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 646 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+/* Round 679 */
+.goal-value,.goal-target{font-variant-numeric:tabular-nums;}
+
+/* Round 712 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 759 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 806 */
+.goal-item:active,
+.goal-card:active {
+  transform: scale(0.995);
+}
+
+/* Round 848 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 906 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 993 */
+:deep(.el-loading-text){font-weight:800;}
+
+/* Round 1001 residual brand pass */
+
+/* Round 1007 goals residual */
+.writing-goals :deep(.el-card),
+.goals-page :deep(.el-card) {
+  border-radius: 16px !important;
+}
+
+/* Round 1059 */
+.writing-goals :deep(.el-button),
+.goals-page :deep(.el-button) {
+  font-weight: 700;
+}
+
+/* Round 1211 */
+.writing-goals :deep(.el-progress),
+.goals-page :deep(.el-progress) {
+  width: 100%;
+}
+
 </style>

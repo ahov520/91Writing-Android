@@ -590,7 +590,7 @@ onMounted(() => {
   margin: 0 0 5px 0;
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .header-content p {
@@ -617,7 +617,7 @@ onMounted(() => {
 
 .selector-label {
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .novel-option {
@@ -631,7 +631,7 @@ onMounted(() => {
 
 .novel-info {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .novel-stats {
@@ -652,7 +652,7 @@ onMounted(() => {
 
 .stat-value {
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .chapters-section {
@@ -677,19 +677,19 @@ onMounted(() => {
   align-items: flex-start;
   gap: 15px;
   padding: 15px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid rgba(124, 58, 237, 0.12);
   border-radius: 8px;
   transition: all 0.3s;
 }
 
 .chapter-item:hover {
-  border-color: #409eff;
-  background-color: #f0f9ff;
+  border-color: #7c3aed;
+  background-color: #faf5ff;
 }
 
 .chapter-item.selected {
-  border-color: #409eff;
-  background-color: #f0f9ff;
+  border-color: #7c3aed;
+  background-color: #faf5ff;
 }
 
 .chapter-checkbox {
@@ -702,10 +702,10 @@ onMounted(() => {
   width: 60px;
   text-align: center;
   font-weight: 600;
-  color: #409eff;
-  background: #f0f9ff;
+  color: #7c3aed;
+  background: #faf5ff;
   padding: 5px;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 12px;
 }
 
@@ -724,7 +724,7 @@ onMounted(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .chapter-summary {
@@ -738,7 +738,7 @@ onMounted(() => {
   display: flex;
   gap: 15px;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .meta-item {
@@ -770,14 +770,14 @@ onMounted(() => {
 .preview-header {
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.12);
 }
 
 .preview-header h2 {
   margin: 0 0 10px 0;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .preview-meta {
@@ -789,7 +789,7 @@ onMounted(() => {
 
 .preview-content {
   line-height: 1.8;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .preview-content p {
@@ -847,4 +847,186 @@ onMounted(() => {
     justify-content: flex-end;
   }
 }
+
+/* Round 5 chapters polish */
+.page-header {
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(124,58,237,0.1);
+  box-shadow: 0 8px 24px rgba(79,70,229,0.06);
+  backdrop-filter: blur(12px);
+}
+.chapter-item {
+  border-radius: 14px !important;
+  border: 1px solid rgba(124,58,237,0.1) !important;
+  background: linear-gradient(145deg,#fff,#faf8ff) !important;
+  transition: all 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.chapter-item:hover {
+  border-color: rgba(124,58,237,0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(124,58,237,0.1);
+}
+
+/* Round 15 chapter depth */
+.chapter-item {
+  background: linear-gradient(145deg, #ffffff, #faf8ff) !important;
+  box-shadow: 0 4px 14px rgba(79,70,229,0.04);
+}
+.chapter-item:hover {
+  border-color: rgba(124,58,237,0.3) !important;
+}
+.stat-value { color: #7c3aed !important; font-weight: 800; }
+.selector-label { color: #1e1b4b; font-weight: 800; }
+
+/* Round 26 glass header force */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+}
+.header-content h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+.header-content p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Round 54 */
+.chapter-actions .el-button {
+  border-radius: 10px !important;
+  font-weight: 700;
+}
+@media (max-width: 768px) {
+  .chapter-item {
+    flex-direction: column;
+  }
+}
+
+/* Round 102 bulk radius/surface */
+
+/* Round 116 */
+.novel-stats { flex-wrap: wrap; }
+.stat-item { background: rgba(124,58,237,0.06); padding: 6px 10px; border-radius: 999px; }
+
+
+/* Round 154 */
+:deep(.el-card) {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 206 */
+.chapter-item h4,.chapter-item h3{font-weight:800;color:#1e1b4b;}
+
+/* Round 243 */
+:deep(.el-dialog) {
+  border-radius: 18px !important;
+}
+@media (max-width: 768px) {
+  :deep(.el-dialog) {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Round 304 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 338 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 378 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 412 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 480 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+/* Round 547 */
+.selector-content{gap:12px;flex-wrap:wrap;}
+
+/* Round 578 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 614 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 648 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+/* Round 680 */
+.chapter-item:active{transform:scale(.995);}
+
+/* Round 714 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 761 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 808 */
+.chapter-item .chapter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Round 850 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 908 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 995 */
+:deep(.el-loading-text){font-weight:800;}
+
+/* Round 1001 residual brand pass */
+
+/* Round 1010 chapters residual */
+.chapter-item {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 1060 */
+.chapter-management :deep(.el-button) {
+  font-weight: 700;
+}
+
+/* Round 1216 */
+.novel-selector :deep(.el-card) {
+  border-radius: 16px !important;
+}
+
 </style>

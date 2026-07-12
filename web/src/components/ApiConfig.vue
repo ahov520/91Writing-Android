@@ -738,7 +738,7 @@ onMounted(() => {
 
 .config-tips h4 {
   margin: 0 0 12px 0;
-  color: #2c3e50;
+  color: #1e1b4b;
   font-size: 16px;
   font-weight: 600;
 }
@@ -772,9 +772,9 @@ onMounted(() => {
 .purchase-info {
   margin-top: 16px;
   padding: 12px;
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 12px;
   text-align: center;
 }
 
@@ -788,7 +788,7 @@ onMounted(() => {
   padding: 8px 12px;
   background: #fff3cd;
   border: 1px solid #ffeaa7;
-  border-radius: 4px;
+  border-radius: 10px;
 }
 
 .tips-note p {
@@ -824,14 +824,14 @@ onMounted(() => {
 }
 
 .model-description {
-  color: #909399;
+  color: #64748b;
   font-size: 12px;
   margin-top: 2px;
 }
 
 .form-tip {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   margin-top: 4px;
 }
 
@@ -894,5 +894,62 @@ onMounted(() => {
 
 .official-config, .custom-config {
   min-height: 350px;
+}
+
+/* Round 13 apiconfig */
+
+.config-section, .model-item {
+  border-radius: 14px !important;
+}
+
+
+/* Round 123 */
+.config-tabs :deep(.el-tabs__item) { font-weight: 700; }
+
+/* Round 163 */
+:deep(.el-button) { font-weight: 700; }
+
+/* Round 279 */
+:deep(.el-card){border-radius:14px!important;}
+
+/* Round 368 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 434 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 519 */
+:deep(.el-empty) {
+  padding: 24px 8px;
+}
+
+/* Round 727 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 777 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 863 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 920 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 1149 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
 }
 </style>

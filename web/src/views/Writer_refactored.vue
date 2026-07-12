@@ -281,8 +281,30 @@ const loadNovelData = () => {
 
 .left-panel {
   width: 350px;
-  background: white;
-  border-right: 1px solid #e4e7ed;
+  background: rgba(255,255,255,0.9);
+  border-right: 1px solid rgba(124, 58, 237, 0.12);
   overflow: hidden;
+}
+
+/* Round 22 refactored writer */
+.writer-layout { background: transparent; }
+
+/* Round 364 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 735 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 785 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 873 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
 }
 </style> 

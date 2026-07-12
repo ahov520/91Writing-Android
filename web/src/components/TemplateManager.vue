@@ -530,7 +530,7 @@ const getPromptPreview = (prompt) => {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .template-form {
@@ -553,7 +553,7 @@ const getPromptPreview = (prompt) => {
 .empty-templates {
   text-align: center;
   padding: 40px;
-  color: #909399;
+  color: #64748b;
 }
 
 .empty-icon {
@@ -575,7 +575,7 @@ const getPromptPreview = (prompt) => {
 
 .template-card {
   padding: 16px;
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
@@ -606,7 +606,7 @@ const getPromptPreview = (prompt) => {
 .template-name {
   font-weight: 600;
   font-size: 16px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .template-actions {
@@ -639,12 +639,12 @@ const getPromptPreview = (prompt) => {
 }
 
 .detail-label {
-  color: #909399;
+  color: #64748b;
   margin-right: 4px;
 }
 
 .detail-value {
-  color: #303133;
+  color: #1e1b4b;
   font-weight: 500;
 }
 
@@ -654,7 +654,7 @@ const getPromptPreview = (prompt) => {
 
 .keywords-label {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   margin-bottom: 6px;
 }
 
@@ -676,7 +676,7 @@ const getPromptPreview = (prompt) => {
 
 .prompt-label {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   margin-bottom: 6px;
 }
 
@@ -692,5 +692,81 @@ const getPromptPreview = (prompt) => {
 
 :deep(.el-form-item__label) {
   font-weight: 500;
+}
+
+/* Round 13 templates */
+
+.template-item, .template-card {
+  border-radius: 14px !important;
+  border: 1px solid rgba(124,58,237,0.1) !important;
+  transition: transform 0.28s, box-shadow 0.28s;
+}
+.template-item:hover, .template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(124,58,237,0.1);
+}
+
+
+/* Round 78 */
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Round 169 */
+:deep(.el-button) { font-weight: 700; }
+
+/* Round 273 */
+:deep(.el-card){border-radius:14px!important;}
+
+/* Round 349 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 440 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 512 */
+:deep(.el-empty) {
+  padding: 24px 8px;
+}
+
+/* Round 620 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 659 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Round 721 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 771 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 857 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 914 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 1047 */
+.template-item:active {
+  transform: scale(0.995);
 }
 </style>

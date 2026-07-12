@@ -202,7 +202,7 @@
               </div>
             </el-option>
           </el-select>
-          <div v-if="createForm.genre && genrePresets[createForm.genre]" style="margin-top: 8px; font-size: 12px; color: #909399;">
+          <div v-if="createForm.genre && genrePresets[createForm.genre]" style="margin-top: 8px; font-size: 12px; color: #64748b;">
             💡 {{ genrePresets[createForm.genre].prompt }}
           </div>
         </el-form-item>
@@ -445,7 +445,7 @@
               </div>
             </el-option>
           </el-select>
-          <div v-if="editForm.genre && genrePresets[editForm.genre]" style="margin-top: 8px; font-size: 12px; color: #909399;">
+          <div v-if="editForm.genre && genrePresets[editForm.genre]" style="margin-top: 8px; font-size: 12px; color: #64748b;">
             💡 {{ genrePresets[editForm.genre].prompt }}
           </div>
         </el-form-item>
@@ -1613,48 +1613,43 @@ onMounted(() => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* inherits global .page-header polish */
 }
 
 .header-content h1 {
-  margin: 0 0 5px 0;
-  font-size: 24px;
-  color: #303133;
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e1b4b;
 }
 
 .header-content p {
   margin: 0;
-  color: #606266;
-  font-size: 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 
 .filter-section {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .filter-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .filter-left {
   display: flex;
-  gap: 15px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .novels-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
   margin-bottom: 20px;
 }
 
@@ -1666,6 +1661,14 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+
+.novel-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md) !important;
 }
 
 .novel-item :deep(.el-card__body) {
@@ -1679,32 +1682,37 @@ onMounted(() => {
   position: relative;
   height: 200px;
   overflow: hidden;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .novel-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+  transition: transform 0.45s var(--ease-out);
+}
+
+.novel-item:hover .novel-cover img {
+  transform: scale(1.04);
 }
 
 .novel-status {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
 }
 
 .novel-info {
   flex: 1;
-  padding: 15px;
+  padding: 16px;
 }
 
 .novel-title {
   margin: 0 0 8px 0;
   font-size: 16px;
-  font-weight: 600;
-  color: #303133;
+  font-weight: 800;
+  color: #1e1b4b;
   line-height: 1.4;
 }
 
@@ -1730,7 +1738,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #909399;
+  color: #64748b;
   font-size: 12px;
 }
 
@@ -1751,7 +1759,7 @@ onMounted(() => {
 
 .cover-uploader {
   border: 1px dashed #d9d9d9;
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -1764,7 +1772,7 @@ onMounted(() => {
 }
 
 .cover-uploader:hover {
-  border-color: #409eff;
+  border-color: #7c3aed;
   background-color: #f8f9fa;
 }
 
@@ -1795,7 +1803,7 @@ onMounted(() => {
   height: 160px;
   object-fit: cover;
   display: block;
-  border-radius: 6px;
+  border-radius: 12px;
 }
 
 .cover-upload-container {
@@ -1829,7 +1837,7 @@ onMounted(() => {
   margin-top: 8px;
   padding: 8px 12px;
   background: #f8f9fa;
-  border-radius: 4px;
+  border-radius: 10px;
   border: 1px solid #e9ecef;
 }
 
@@ -1848,7 +1856,7 @@ onMounted(() => {
   gap: 20px;
   margin-bottom: 20px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.1);
 }
 
 .details-cover {
@@ -1859,8 +1867,8 @@ onMounted(() => {
   width: 120px;
   height: 160px;
   object-fit: cover;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
 }
 
 .details-info {
@@ -1869,7 +1877,7 @@ onMounted(() => {
 
 .details-info h2 {
   margin: 0 0 10px 0;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .details-description {
@@ -1892,7 +1900,7 @@ onMounted(() => {
 
 .meta-label {
   font-weight: 500;
-  color: #303133;
+  color: #1e1b4b;
   min-width: 80px;
 }
 
@@ -1912,13 +1920,13 @@ onMounted(() => {
 .chapter-info h4 {
   margin: 0 0 5px 0;
   font-size: 14px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .chapter-info p {
   margin: 0;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .writing-records {
@@ -1936,7 +1944,7 @@ onMounted(() => {
 .record-date {
   flex-shrink: 0;
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
   min-width: 80px;
 }
 
@@ -1954,7 +1962,7 @@ onMounted(() => {
 
 .record-note {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .stats-grid {
@@ -1973,13 +1981,13 @@ onMounted(() => {
 .stat-value {
   font-size: 24px;
   font-weight: 600;
-  color: #409eff;
+  color: #7c3aed;
   margin-bottom: 5px;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #909399;
+  color: #64748b;
 }
 
 .image-placeholder {
@@ -1989,8 +1997,8 @@ onMounted(() => {
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: #f5f7fa;
-  color: #909399;
+  background: transparent;
+  color: #64748b;
   font-size: 12px;
 }
 
@@ -2056,4 +2064,181 @@ onMounted(() => {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Round 8 novels polish */
+.novel-card .novel-item {
+  border: 1px solid rgba(124,58,237,0.1) !important;
+}
+.novel-meta, .meta-info {
+  gap: 8px;
+}
+.header-content h1 { font-weight: 800; }
+
+/* Round 16 novels depth */
+.novel-status .el-tag { backdrop-filter: blur(8px); box-shadow: 0 4px 12px rgba(15,23,42,0.12); }
+.novel-actions .el-button { border-radius: 10px !important; font-weight: 700; }
+
+/* Round 30 filter */
+.filter-section :deep(.el-card) {
+  background: rgba(255,255,255,0.82) !important;
+  backdrop-filter: blur(12px);
+}
+.filter-section :deep(.el-card__body) {
+  padding: 14px 16px;
+}
+
+/* Round 66 */
+.empty-state, .empty-novels {
+  padding: 48px 16px;
+  border-radius: 16px;
+  border: 1px dashed rgba(124,58,237,0.22);
+  background: linear-gradient(160deg,#fff,#f5f3ff);
+}
+
+/* Round 102 bulk radius/surface */
+
+/* Round 118 */
+.novel-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #64748b;
+}
+
+
+/* Round 156 */
+:deep(.el-card) {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 197 */
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-weight: 500;
+}
+
+/* Round 204 */
+.novel-card .el-button{font-weight:700;}
+
+/* Round 253 */
+.novel-item :deep(.el-card__body){background:linear-gradient(180deg,#fff, #fcfbff);}
+
+/* Round 306 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 334 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 401 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 452 */
+.novel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+.novel-actions .el-button {
+  border-radius: 10px !important;
+  font-weight: 700;
+}
+@media (max-width: 768px) {
+  .novels-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Round 487 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+
+/* Round 526 */
+.filter-left .el-select {
+  min-width: 120px;
+}
+
+/* Round 546 */
+.novel-title{-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;}
+
+/* Round 577 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 604 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 638 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+/* Round 674 */
+.novel-cover{background:linear-gradient(135deg,#ede9fe,#ddd6fe);}
+
+/* Round 704 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 751 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 801 */
+.novel-item :deep(.el-tag) {
+  backdrop-filter: blur(8px);
+}
+.novels-grid {
+  align-items: stretch;
+}
+
+/* Round 840 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 898 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 984 */
+.novel-management {
+  min-width: 0;
+}
+
+
+/* Round 1041 */
+.novel-item :deep(.el-card__body) {
+  display: flex;
+  flex-direction: column;
+}
+.novel-info {
+  flex: 1;
+}
+
+/* Round 1101 residual cleanup */
+
+/* Round 1153 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
+}
+
+/* Round 1214 */
+.filter-section :deep(.el-select) {
+  min-width: 0;
+}
+
 </style>

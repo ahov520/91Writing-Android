@@ -540,20 +540,13 @@ onMounted(() => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* global design-system page-header */
 }
 
 .header-content h1 {
   margin: 0 0 5px 0;
   font-size: 24px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .header-content p {
@@ -576,22 +569,22 @@ onMounted(() => {
 }
 
 .overview-card.usage :deep(.el-card__body) {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
   color: white;
 }
 
 .overview-card.input :deep(.el-card__body) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: white;
 }
 
 .overview-card.output :deep(.el-card__body) {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
   color: white;
 }
 
 .overview-card.total :deep(.el-card__body) {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
   color: white;
 }
 
@@ -640,7 +633,7 @@ onMounted(() => {
 .card-header h3 {
   margin: 0;
   font-size: 18px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .time-filter {
@@ -708,7 +701,7 @@ onMounted(() => {
 
 .model-name {
   font-weight: 500;
-  color: #409eff;
+  color: #7c3aed;
 }
 
 .cost-amount {
@@ -762,13 +755,13 @@ onMounted(() => {
 .response-section h4 {
   margin: 0;
   font-size: 14px;
-  color: #303133;
+  color: #1e1b4b;
 }
 
 .content-box {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
-  border-radius: 4px;
+  border-radius: 10px;
   padding: 15px;
   font-size: 13px;
   line-height: 1.5;
@@ -777,4 +770,183 @@ onMounted(() => {
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+/* Round 4 billing polish */
+.overview-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+  border: none !important;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12) !important;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.overview-card:hover { transform: translateY(-3px); }
+.overview-value { font-weight: 800 !important; letter-spacing: -0.02em; }
+.header-content h1 { font-weight: 800; font-size: 22px; }
+
+/* Round 18 billing depth */
+.statistics-section .el-card {
+  border-radius: 16px !important;
+}
+.card-header h3 { font-weight: 800; }
+
+/* Round 26 glass header force */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.06);
+}
+.header-content h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e1b4b;
+}
+.header-content p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Round 44 */
+.el-table {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Round 68 */
+.overview-icon {
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+/* Round 102 bulk radius/surface */
+
+/* Round 115 */
+.overview-card :deep(.el-card__body) { border-radius: 16px; }
+
+
+/* Round 153 */
+:deep(.el-card) {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 199 */
+:deep(.el-input__inner),
+:deep(.el-textarea__inner) {
+  font-weight: 500;
+}
+
+/* Round 209 */
+.overview-label{font-weight:700;letter-spacing:.02em;}
+
+/* Round 245 */
+:deep(.el-dialog) {
+  border-radius: 18px !important;
+}
+@media (max-width: 768px) {
+  :deep(.el-dialog) {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Round 259 */
+.account-overview .el-col{margin-bottom:12px;}
+
+/* Round 303 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 337 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 380 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 415 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 483 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+
+/* Round 528 */
+.overview-card :deep(.el-card__body) {
+  min-height: 100px;
+}
+
+
+/* Round 565 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 613 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 647 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+/* Round 678 */
+.overview-value{font-variant-numeric:tabular-nums;}
+
+/* Round 713 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 760 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 805 */
+.overview-card:active {
+  transform: scale(0.99);
+}
+
+/* Round 849 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 907 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 994 */
+:deep(.el-loading-text){font-weight:800;}
+
+/* Round 1043 */
+.overview-item {
+  min-height: 72px;
+}
+
+/* Round 1151 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
+}
+
+/* Round 1210 */
+.token-billing :deep(.el-table),
+.billing-page :deep(.el-table) {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
 </style>

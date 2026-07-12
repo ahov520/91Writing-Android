@@ -229,14 +229,14 @@ const clearSummary = () => {
   margin-bottom: 16px;
   padding: 12px;
   background-color: #f8f9fa;
-  border-radius: 6px;
+  border-radius: 12px;
 }
 
 .summary-settings {
   margin-bottom: 20px;
   padding: 16px;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  border-radius: 12px;
   background-color: #fafbfc;
 }
 
@@ -254,15 +254,15 @@ const clearSummary = () => {
 
 .summary-result h4 {
   margin: 0 0 12px 0;
-  color: #303133;
+  color: #1e1b4b;
   font-size: 16px;
 }
 
 .summary-text {
   padding: 16px;
-  background-color: #f0f9ff;
+  background-color: #faf5ff;
   border: 1px solid #bfdbfe;
-  border-radius: 6px;
+  border-radius: 12px;
   line-height: 1.6;
   color: #1e40af;
   white-space: pre-wrap;
@@ -282,6 +282,67 @@ const clearSummary = () => {
 }
 
 :deep(.el-empty__description) {
-  color: #909399;
+  color: #64748b;
+}
+
+/* Round 13 summary */
+
+.summary-card, .result-box {
+  border-radius: 14px !important;
+  border: 1px solid rgba(124,58,237,0.12) !important;
+}
+
+
+/* Round 79 */
+.summary-result {
+  line-height: 1.75;
+  color: #334155;
+}
+
+/* Round 168 */
+:deep(.el-button) { font-weight: 700; }
+
+/* Round 278 */
+:deep(.el-card){border-radius:14px!important;}
+
+/* Round 365 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 439 */
+:deep(.el-button--primary) {
+  letter-spacing: 0.01em;
+}
+
+/* Round 517 */
+:deep(.el-empty) {
+  padding: 24px 8px;
+}
+
+/* Round 725 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 775 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 861 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 918 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 1148 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
 }
 </style>

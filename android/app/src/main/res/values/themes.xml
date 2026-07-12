@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Writing91" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#409EFF</item>
-        <item name="colorPrimaryVariant">#337ecc</item>
+        <item name="colorPrimary">#7C3AED</item>
+        <item name="colorPrimaryVariant">#6D28D9</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#67C23A</item>
-        <item name="android:statusBarColor">#1a1a2e</item>
-        <item name="android:navigationBarColor">#1a1a2e</item>
-        <item name="android:windowBackground">#0f0f1a</item>
+        <item name="colorSecondary">#EC4899</item>
+        <item name="android:statusBarColor">#0C0E18</item>
+        <item name="android:navigationBarColor">#0C0E18</item>
+        <item name="android:windowBackground">#0B0D14</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

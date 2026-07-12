@@ -629,7 +629,7 @@ refreshData()
 
 .studio-header p {
   margin: 6px 0 0;
-  color: #909399;
+  color: #64748b;
 }
 
 .studio-header-actions {
@@ -669,13 +669,13 @@ refreshData()
 }
 
 .kanban-item {
-  border: 1px solid #ebeef5;
+  border: 1px solid rgba(124, 58, 237, 0.1);
   border-radius: 8px;
   padding: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.9);
   cursor: move;
 }
 
@@ -688,19 +688,19 @@ refreshData()
 }
 
 .snapshot-item {
-  border: 1px solid #ebeef5;
+  border: 1px solid rgba(124, 58, 237, 0.1);
   border-radius: 8px;
   padding: 10px;
   cursor: pointer;
 }
 
 .snapshot-item.active {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: #7c3aed;
+  background: #f5f3ff;
 }
 
 .hint-text {
-  color: #909399;
+  color: #64748b;
   margin: 4px 0;
 }
 
@@ -739,4 +739,156 @@ refreshData()
     grid-template-columns: 1fr;
   }
 }
+
+/* Round 7 studio polish */
+.studio-card, .panel-card, .workspace-card {
+  border-radius: 16px !important;
+  border: 1px solid rgba(124,58,237,0.1) !important;
+}
+.header-content h1 { font-weight: 800; font-size: 22px; }
+
+/* Round 19 studio depth */
+.creation-studio .el-card {
+  border-radius: 16px !important;
+}
+
+/* Round 38 glass header */
+.page-header {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  margin-bottom: 18px; padding: 20px 22px; border-radius: 16px;
+  background: rgba(255,255,255,0.82); backdrop-filter: blur(14px);
+  border: 1px solid rgba(124,58,237,0.1); box-shadow: 0 8px 24px rgba(79,70,229,0.06);
+}
+.header-content h1 { font-weight: 800; font-size: 22px; color: #1e1b4b; margin: 0 0 6px; }
+.header-content p { margin: 0; color: #64748b; font-size: 13px; }
+
+/* Round 81 */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .header-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header-actions .el-button {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+/* Round 102 bulk radius/surface */
+
+/* Round 134 */
+:deep(.el-button--primary.is-plain) {
+  --el-button-bg-color: rgba(124,58,237,0.08);
+  --el-button-border-color: rgba(124,58,237,0.25);
+  --el-button-text-color: #6d28d9;
+  font-weight: 700;
+}
+
+/* Round 158 */
+:deep(.el-card) {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s;
+}
+
+/* Round 240 */
+:deep(.el-dialog) {
+  border-radius: 18px !important;
+}
+@media (max-width: 768px) {
+  :deep(.el-dialog) {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Round 308 */
+:deep(.el-tag) { font-weight: 700; }
+
+/* Round 341 */
+:deep(.el-button--small){border-radius:10px;font-weight:700;}
+
+/* Round 373 */
+:deep(.el-empty__description p){font-weight:600;}
+
+/* Round 411 */
+:deep(.el-loading-mask) {
+  border-radius: inherit;
+}
+
+/* Round 477 */
+:deep(.el-popper) {
+  max-width: min(92vw, 360px);
+}
+
+/* Round 564 */
+:deep(.el-alert__title) { font-weight: 800; }
+
+/* Round 610 */
+:deep(.el-tooltip__trigger:focus-visible){outline:2px solid rgba(124,58,237,.4);outline-offset:2px;}
+
+/* Round 644 */
+:deep(.el-switch.is-checked .el-switch__core) {
+  background-color: #7c3aed !important;
+  border-color: #7c3aed !important;
+}
+
+/* Round 709 */
+:deep(.el-button.is-text) {
+  font-weight: 700;
+}
+
+/* Round 756 */
+:deep(.el-dialog__headerbtn:focus-visible) {
+  outline: 2px solid rgba(124,58,237,0.45);
+  border-radius: 8px;
+}
+
+/* Round 812 */
+.creation-studio :deep(.el-card__header) {
+  font-weight: 800;
+}
+
+/* Round 845 */
+:deep(.el-popconfirm__main) {
+  line-height: 1.5;
+}
+
+/* Round 903 */
+:deep(.el-message-box__message) {
+  line-height: 1.55;
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Round 990 */
+:deep(.el-loading-text){font-weight:800;}
+
+/* Round 1001 residual brand pass */
+
+/* Round 1008 studio residual */
+.creation-studio :deep(.el-card) {
+  border-radius: 16px !important;
+  border: 1px solid rgba(124,58,237,0.1) !important;
+}
+
+/* Round 1055 */
+.creation-studio :deep(.el-button) {
+  font-weight: 700;
+}
+
+/* Round 1158 */
+:deep(.el-input__wrapper) {
+  transition: box-shadow 0.2s ease;
+}
+
+/* Round 1208 */
+.creation-studio :deep(.el-steps) {
+  margin-bottom: 16px;
+}
+
 </style>
