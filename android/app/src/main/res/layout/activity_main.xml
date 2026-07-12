@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="墨韵 · 紫金 · AI Novel Studio"
+            android:text="墨韵 · 琥珀 · AI Novel Studio"
             android:textColor="#C4B5FD"
             android:textSize="13sp" />
 
@@ -52,7 +52,7 @@
             android:layout_height="42dp"
             android:layout_marginTop="36dp"
             android:indeterminate="true"
-            android:indeterminateTint="#A78BFA" />
+            android:indeterminateTint="#FBBF24" />
 
         <TextView
             android:id="@+id/loadingText"
@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/reload"
-            android:backgroundTint="#7C3AED"
-            android:textColor="#FFFFFF" />
+            android:backgroundTint="#A78BFA"
+            android:textColor="#0A0C12" />
     </LinearLayout>
 </FrameLayout>
