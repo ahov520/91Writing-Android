@@ -59,6 +59,7 @@
     <div class="m-section-title">操作</div>
     <div class="m-btn-row">
       <button type="button" class="m-btn m-btn--ghost" @click="refresh">刷新</button>
+      <button type="button" class="m-btn m-btn--ghost" @click="cleanOld">清理 30 天前</button>
       <button type="button" class="m-btn m-btn--danger" @click="clear">清空记录</button>
     </div>
   </div>
@@ -132,5 +133,25 @@ function clear() {
   }
 }
 
-onMounted(refresh)
+function cleanOld() {
+  try {
+    const before = (billingService.getBillingRecords?.() || []).length
+    billingService.cleanOldRecords?.()
+    refresh()
+    const after = (billingService.getBillingRecords?.() || []).length
+    const n = Math.max(0, before - after)
+    toast.success(n ? `已清理 ${n} 条过期记录` : '没有超过 30 天的记录')
+  } catch (e) {
+    toast.error(e?.message || '清理失败')
+  }
+}
+
+onMounted(() => {
+  try {
+    billingService.cleanOldRecords?.()
+  } catch {
+    /* ignore */
+  }
+  refresh()
+})
 </script>

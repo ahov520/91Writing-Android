@@ -12,15 +12,43 @@ const prefs = ref({
   /** chars of chapter body sent as AI context tail */
   contextChars: 2500,
   /** include previous chapter summary when continuing */
-  includePrevChapter: true
+  includePrevChapter: true,
+  /** show session word count / elapsed in writer status */
+  showSessionStats: true,
+  /** 0 = off; otherwise pomodoro minutes */
+  pomodoroMinutes: 0,
+  /** prefer cached AI summary over raw tail for prev chapter */
+  preferChapterSummary: true,
+  /** writer paper style: default | parchment | night */
+  writerPaper: 'default',
+  /** default chapter word goal (0 = off) */
+  chapterWordGoal: 0,
+  /** autosave delay ms */
+  autosaveMs: 800
 })
 let loaded = false
 
 function load() {
-  if (loaded) return
+  // Always re-read so backup import / external writes refresh UI (was no-op after first load)
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) prefs.value = { ...prefs.value, ...JSON.parse(raw) }
+    if (raw) {
+      const defaults = {
+        theme: 'dark',
+        fontSize: 17,
+        lineHeight: 1.75,
+        readingMode: false,
+        contextChars: 2500,
+        includePrevChapter: true,
+        showSessionStats: true,
+        pomodoroMinutes: 0,
+        preferChapterSummary: true,
+        writerPaper: 'default',
+        chapterWordGoal: 0,
+        autosaveMs: 800
+      }
+      prefs.value = { ...defaults, ...JSON.parse(raw) }
+    }
   } catch {
     /* ignore */
   }
@@ -48,6 +76,10 @@ function applyTheme() {
   document.documentElement.style.setProperty(
     '--editor-line-height',
     String(prefs.value.lineHeight || 1.75)
+  )
+  document.documentElement.setAttribute(
+    'data-writer-paper',
+    prefs.value.writerPaper || 'default'
   )
 }
 
@@ -79,6 +111,40 @@ export function usePrefs() {
     save()
   }
 
+  function setShowSessionStats(on) {
+    prefs.value.showSessionStats = !!on
+    save()
+  }
+
+  function setPomodoroMinutes(n) {
+    const v = Number(n) || 0
+    prefs.value.pomodoroMinutes = [0, 15, 25, 45, 50].includes(v) ? v : 0
+    save()
+  }
+
+  function setPreferChapterSummary(on) {
+    prefs.value.preferChapterSummary = !!on
+    save()
+  }
+
+  function setWriterPaper(mode) {
+    const m = ['default', 'parchment', 'night'].includes(mode) ? mode : 'default'
+    prefs.value.writerPaper = m
+    save()
+  }
+
+  function setChapterWordGoal(n) {
+    const v = Math.max(0, Math.min(50000, Number(n) || 0))
+    prefs.value.chapterWordGoal = v
+    save()
+  }
+
+  function setAutosaveMs(n) {
+    const v = Math.max(400, Math.min(5000, Number(n) || 800))
+    prefs.value.autosaveMs = v
+    save()
+  }
+
   function toggleReadingMode() {
     prefs.value.readingMode = !prefs.value.readingMode
     save()
@@ -91,6 +157,12 @@ export function usePrefs() {
     setLineHeight,
     setContextChars,
     setIncludePrevChapter,
+    setShowSessionStats,
+    setPomodoroMinutes,
+    setPreferChapterSummary,
+    setWriterPaper,
+    setChapterWordGoal,
+    setAutosaveMs,
     toggleReadingMode,
     applyTheme,
     load

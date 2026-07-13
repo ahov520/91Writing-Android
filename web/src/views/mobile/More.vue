@@ -55,7 +55,8 @@
 const createItems = [
   { to: '/tools', icon: '🛠️', label: '短篇 / 拆书 / 工坊' },
   { to: '/prompts', icon: '💬', label: '提示词库' },
-  { to: '/goals', icon: '🎯', label: '写作目标' }
+  { to: '/goals', icon: '🎯', label: '写作目标' },
+  { to: '/stats', icon: '📈', label: '统计与成就' }
 ]
 
 const manageItems = [
@@ -64,5 +65,7 @@ const manageItems = [
   { to: '/settings', icon: '⚙️', label: 'API 设置' }
 ]
 
-const dataItems = [{ to: '/backup', icon: '💾', label: '备份与导入' }]
+const dataItems = [
+  { to: '/backup', icon: '💾', label: '备份 / 回收站 / 粘贴建书' }
+]
 </script>

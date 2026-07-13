@@ -26,22 +26,35 @@ const configType = ref('official') // official | custom
 const ready = ref(false)
 
 function load() {
+  // Always rebuild from storage so import/reset cannot leave stale secrets in memory
+  const officialDefaults = {
+    apiKey: '',
+    baseURL: OFFICIAL_BASE,
+    selectedModel: 'claude-4-sonnet',
+    maxTokens: 4096,
+    temperature: 0.7
+  }
+  const customDefaults = {
+    apiKey: '',
+    baseURL: 'https://api.openai.com/v1',
+    selectedModel: 'gpt-3.5-turbo',
+    maxTokens: 4096,
+    temperature: 0.7
+  }
   try {
     configType.value = localStorage.getItem('apiConfigType') || 'official'
     const o = localStorage.getItem('officialApiConfig')
-    if (o) {
-      official.value = {
-        ...official.value,
-        ...JSON.parse(o),
-        baseURL: OFFICIAL_BASE
-      }
-    }
+    official.value = o
+      ? { ...officialDefaults, ...JSON.parse(o), baseURL: OFFICIAL_BASE }
+      : { ...officialDefaults }
     const c = localStorage.getItem('customApiConfig')
-    if (c) {
-      custom.value = { ...custom.value, ...JSON.parse(c) }
-    }
+    custom.value = c
+      ? { ...customDefaults, ...JSON.parse(c) }
+      : { ...customDefaults }
   } catch (e) {
     console.warn('load api config failed', e)
+    official.value = { ...officialDefaults }
+    custom.value = { ...customDefaults }
   }
   applyToService()
   ready.value = true
@@ -53,14 +66,18 @@ function current() {
 
 function applyToService() {
   const cfg = current()
-  apiService.updateConfig({
-    apiKey: cfg.apiKey || '',
-    baseURL: (cfg.baseURL || '').replace(/\/$/, ''),
-    selectedModel: cfg.selectedModel,
-    defaultModel: cfg.selectedModel,
-    maxTokens: cfg.maxTokens,
-    temperature: cfg.temperature
-  })
+  // Runtime only — never rewrite localStorage from apply path (prevents config pollution)
+  apiService.updateConfig(
+    {
+      apiKey: cfg.apiKey || '',
+      baseURL: (cfg.baseURL || '').replace(/\/$/, ''),
+      selectedModel: cfg.selectedModel,
+      defaultModel: cfg.selectedModel,
+      maxTokens: cfg.maxTokens,
+      temperature: cfg.temperature
+    },
+    { persist: false }
+  )
 }
 
 function save() {

@@ -60,21 +60,35 @@ class APIService {
     return this.config
   }
 
-  // 更新API配置
-  updateConfig(newConfig) {
+  /**
+   * Update runtime API config.
+   * @param {object} newConfig
+   * @param {{ persist?: boolean }} [opts] - persist=false for applyToService (avoid rewriting localStorage on every request setup)
+   */
+  updateConfig(newConfig, opts = {}) {
+    const persist = opts.persist !== false
     this.config = { ...this.config, ...newConfig }
+    if (!persist) return
     // 保存到localStorage（根据配置类型保存到对应位置）
     try {
       const configType = localStorage.getItem('apiConfigType') || 'official'
-      
-      if (configType === 'official') {
-        localStorage.setItem('officialApiConfig', JSON.stringify(this.config))
-      } else {
-        localStorage.setItem('customApiConfig', JSON.stringify(this.config))
+      // Only persist user-facing fields — do not dump entire runtime config blob
+      const toSave = {
+        apiKey: this.config.apiKey || '',
+        baseURL: this.config.baseURL || '',
+        selectedModel: this.config.selectedModel || this.config.defaultModel || '',
+        maxTokens: this.config.maxTokens ?? null,
+        temperature: this.config.temperature ?? 0.7
       }
-      
-      // 同时更新旧的配置键以保持兼容性
-      localStorage.setItem('apiConfig', JSON.stringify(this.config))
+      if (configType === 'official') {
+        localStorage.setItem(
+          'officialApiConfig',
+          JSON.stringify({ ...toSave, baseURL: this.config.baseURL })
+        )
+      } else {
+        localStorage.setItem('customApiConfig', JSON.stringify(toSave))
+      }
+      localStorage.setItem('apiConfig', JSON.stringify(toSave))
     } catch (error) {
       console.error('保存API配置失败:', error)
     }
@@ -95,6 +109,9 @@ class APIService {
 
   // 通用API请求方法
   async makeRequest(endpoint, options = {}) {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new Error('当前离线，请恢复网络后再试')
+    }
     const url = this.buildURL(endpoint)
     const headers = this.buildHeaders()
     
@@ -108,11 +125,26 @@ class APIService {
       const response = await fetch(url, requestOptions)
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(`API请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`)
+        const errorText = await response.text().catch(() => '')
+        let detail = errorText.slice(0, 200)
+        try {
+          const errorData = JSON.parse(errorText)
+          detail = errorData.error?.message || errorData.message || detail
+        } catch {
+          /* non-JSON body (HTML gateway, plain text) */
+        }
+        throw new Error(
+          `API请求失败: ${response.status}${detail ? ' - ' + detail : ''}`
+        )
       }
-      
-      return await response.json()
+
+      const text = await response.text()
+      if (!text) return {}
+      try {
+        return JSON.parse(text)
+      } catch {
+        throw new Error('API 返回了非 JSON 响应')
+      }
     } catch (error) {
       console.error('API请求错误:', error)
       throw error
@@ -190,9 +222,10 @@ class APIService {
 
   // 流式生成文本内容
   async generateTextStream(prompt, options = {}, onChunk = null) {
-    console.log('开始流式生成，prompt:', prompt.substring(0, 100) + '...') // 调试日志
-    
     // 验证配置的完整性
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new Error('当前离线，请恢复网络后再试')
+    }
     if (!this.config.apiKey || this.config.apiKey.trim() === '') {
       throw new Error('API密钥未配置，请先在设置中配置API密钥')
     }
@@ -202,7 +235,6 @@ class APIService {
     }
     
     const model = options.model || this.config.selectedModel || this.config.defaultModel || 'gpt-3.5-turbo'
-    console.log('使用模型:', model)
     
     // 验证prompt参数
     if (!prompt || typeof prompt !== 'string') {
@@ -214,11 +246,8 @@ class APIService {
     try {
       // 移除控制字符和不可见字符
       cleanPrompt = prompt.replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
-      
       // 确保可以正常JSON序列化
       JSON.stringify({ content: cleanPrompt })
-      
-      console.log('Prompt清理完成，原长度:', prompt.length, '清理后长度:', cleanPrompt.length)
     } catch (cleanError) {
       console.error('Prompt清理失败:', cleanError)
       throw new Error('提示词包含无法处理的字符，请检查输入内容')
@@ -229,12 +258,6 @@ class APIService {
     
     // 移除maxTokens限制，允许无限制生成
     const maxTokens = options.maxTokens || this.config.maxTokens || null
-    
-    console.log('maxTokens配置检查:', {
-      'options.maxTokens': options.maxTokens,
-      'this.config.maxTokens': this.config.maxTokens,
-      '最终使用的maxTokens': maxTokens
-    })
     
     const requestBody = {
       model: model,
@@ -249,8 +272,6 @@ class APIService {
       stream: true
     }
 
-    console.log('请求体:', requestBody) // 调试日志
-    
     const url = this.buildURL('/chat/completions')
     const headers = this.buildHeaders()
     
@@ -279,19 +300,21 @@ class APIService {
         body: JSON.stringify(requestBody),
         signal: streamController.signal
       })
-      
-      console.log('API响应状态:', response.status) // 调试日志
 
       if (!response.ok) {
-        const errorText = await response.text()
+        const errorText = await response.text().catch(() => '')
         hasError = true
         console.error('API错误响应:', errorText)
+        let detail = (errorText || '').slice(0, 240)
         try {
           const errorData = JSON.parse(errorText)
-          throw new Error(`API请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`)
-        } catch (parseError) {
-          throw new Error(`API请求失败: ${response.status} - ${errorText}`)
+          detail = errorData.error?.message || errorData.message || detail
+        } catch {
+          /* plain text / HTML */
         }
+        throw new Error(
+          `API请求失败: ${response.status}${detail ? ' - ' + detail : ''}`
+        )
       }
 
       const reader = response.body.getReader()
@@ -299,18 +322,13 @@ class APIService {
 
       let streamFinished = false
       let buffer = '' // 用于处理分片数据
-      let processedChunks = 0 // 统计处理的chunk数量
-      let lastProgressTime = Date.now() // 记录最后一次接收数据的时间
       let noDataTimeout = null // 无数据超时检查
       
       // 设置无数据超时检查（30秒没有新数据则认为可能有问题）
       const resetNoDataTimeout = () => {
-        if (noDataTimeout) {
-          clearTimeout(noDataTimeout)
-        }
+        if (noDataTimeout) clearTimeout(noDataTimeout)
         noDataTimeout = setTimeout(() => {
-          console.log('警告：30秒内没有接收到新数据，但流未结束')
-          // 不直接结束，继续等待，但记录警告
+          // keep waiting; timeout is diagnostic only
         }, 30000)
       }
       
@@ -321,18 +339,11 @@ class APIService {
           const { done, value } = await reader.read()
           
           if (done) {
-            console.log('读取完成，处理了', processedChunks, '个chunks，总内容长度:', fullContent.length)
-            if (noDataTimeout) {
-              clearTimeout(noDataTimeout)
-            }
+            if (noDataTimeout) clearTimeout(noDataTimeout)
             break
           }
 
           const chunk = decoder.decode(value, { stream: true })
-          console.log('接收到原始chunk:', chunk.length, '字节') // 调试日志
-          
-          // 重置无数据超时
-          lastProgressTime = Date.now()
           resetNoDataTimeout()
           
           // 将新的chunk添加到缓冲区
@@ -349,15 +360,12 @@ class APIService {
               const data = trimmedLine.slice(6).trim()
               
               if (data === '[DONE]') {
-                console.log('收到[DONE]标记，流式生成完成，总内容长度:', fullContent.length)
                 streamFinished = true
                 break
               }
               
               // 跳过空数据
-              if (!data || data === '') {
-                continue
-              }
+              if (!data) continue
               
               try {
                 const parsed = JSON.parse(data)
@@ -365,9 +373,6 @@ class APIService {
                 
                 if (content) {
                   fullContent += content
-                  processedChunks++
-                  console.log('接收到内容片段:', content.length, '字符，总长度:', fullContent.length)
-                  
                   if (onChunk) {
                     try {
                       onChunk(content, fullContent)
@@ -379,7 +384,6 @@ class APIService {
                 
                 // 检查是否有结束标记
                 if (parsed.choices?.[0]?.finish_reason) {
-                  console.log('检测到结束标记:', parsed.choices[0].finish_reason)
                   streamFinished = true
                   break
                 }
@@ -390,13 +394,8 @@ class APIService {
                   throw new Error(`API错误: ${parsed.error.message || '未知错误'}`)
                 }
               } catch (e) {
-                console.log('解析数据失败，原始数据长度:', data.length, '错误:', e.message)
-                // 如果是JSON解析错误，继续处理其他数据
-                // 如果是API错误，则抛出异常
-                if (e.message.startsWith('API错误:')) {
-                  throw e
-                }
-                // 继续处理其他数据，不中断流式处理
+                // 如果是API错误，则抛出异常；JSON 解析失败则跳过该行
+                if (e.message?.startsWith('API错误:')) throw e
               }
             }
           }
@@ -404,7 +403,6 @@ class APIService {
         
         // 处理剩余的缓冲区数据
         if (buffer.trim() && !streamFinished) {
-          console.log('处理剩余缓冲区数据:', buffer.length, '字符')
           const trimmedLine = buffer.trim()
           if (trimmedLine.startsWith('data: ')) {
             const data = trimmedLine.slice(6).trim()
@@ -414,39 +412,21 @@ class APIService {
                 const content = parsed.choices?.[0]?.delta?.content || ''
                 if (content) {
                   fullContent += content
-                  console.log('缓冲区内容片段:', content.length, '字符，总长度:', fullContent.length)
-                  if (onChunk) {
-                    onChunk(content, fullContent)
-                  }
+                  if (onChunk) onChunk(content, fullContent)
                 }
-              } catch (e) {
-                console.log('缓冲区数据解析失败:', e.message)
+              } catch {
+                /* ignore trailing partial */
               }
             }
           }
         }
         
-        console.log('流式生成最终完成，总处理chunks:', processedChunks, '最终内容长度:', fullContent.length)
-        
-        // 清理超时检查
-        if (noDataTimeout) {
-          clearTimeout(noDataTimeout)
-        }
-        
-        // 检查内容完整性
-        if (fullContent.length === 0) {
-          console.warn('警告：流式生成完成但没有获得任何内容')
-        } else if (fullContent.length < 10) {
-          console.warn('警告：生成的内容过短，可能被截断:', fullContent)
-        }
+        if (noDataTimeout) clearTimeout(noDataTimeout)
         
       } catch (streamError) {
         console.error('流式读取错误:', streamError)
         
-        // 清理超时检查
-        if (noDataTimeout) {
-          clearTimeout(noDataTimeout)
-        }
+        if (noDataTimeout) clearTimeout(noDataTimeout)
         
         // 如果是网络错误或超时，但已经有部分内容，可以考虑返回部分内容
         if (fullContent.length > 0 && (
@@ -454,7 +434,6 @@ class APIService {
           streamError.message.includes('timeout') ||
           streamError.message.includes('network')
         )) {
-          console.log('网络问题导致流式中断，但已获得部分内容:', fullContent.length, '字符')
           toast.warning('网络不稳定，已获得部分生成内容')
           // 不抛出错误，返回已获得的内容
         } else {
@@ -464,8 +443,8 @@ class APIService {
       } finally {
         try {
           reader.releaseLock()
-        } catch (e) {
-          console.log('释放reader锁失败:', e.message)
+        } catch {
+          /* ignore */
         }
       }
 

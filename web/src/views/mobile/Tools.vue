@@ -127,12 +127,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApiConfig } from '../../composables/useApiConfig.js'
 import { useNovels } from '../../composables/useNovels.js'
 import apiService from '../../services/api.js'
 import toast from '../../services/toast.js'
+import { keepScreenOn } from '../../utils/bridge.js'
 
 const router = useRouter()
 const { isConfigured, applyToService } = useApiConfig()
@@ -166,16 +167,28 @@ async function stream(prompt, type) {
   isStreaming.value = true
   output.value = ''
   abortController = new AbortController()
+  keepScreenOn(true)
+  let raf = 0
+  let pending = ''
+  const flushUi = () => {
+    raf = 0
+    output.value = pending
+  }
   try {
     await apiService.generateTextStream(
       prompt,
       { type, signal: abortController.signal },
       (_c, full) => {
-        output.value = full
+        pending = full
+        if (!raf) raf = requestAnimationFrame(flushUi)
       }
     )
+    if (raf) cancelAnimationFrame(raf)
+    if (pending) output.value = pending
     toast.success('完成')
   } catch (e) {
+    if (raf) cancelAnimationFrame(raf)
+    if (pending) output.value = pending
     if (e?.name === 'AbortError' || e?.message === 'GENERATION_ABORTED') {
       if (e.partial) output.value = e.partial
       toast.info('已停止')
@@ -186,12 +199,25 @@ async function stream(prompt, type) {
     busy.value = false
     isStreaming.value = false
     abortController = null
+    keepScreenOn(false)
   }
 }
 
 function stop() {
   abortController?.abort()
 }
+
+onBeforeUnmount(() => {
+  if (abortController) {
+    try {
+      abortController.abort()
+    } catch {
+      /* ignore */
+    }
+    abortController = null
+  }
+  keepScreenOn(false)
+})
 
 function genShort() {
   stream(

@@ -50,7 +50,7 @@ const tabs = [
   },
   {
     to: '/more',
-    match: ['/more', '/prompts', '/goals', '/genres', '/billing', '/backup'],
+    match: ['/more', '/prompts', '/goals', '/genres', '/billing', '/backup', '/stats'],
     label: '更多',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`
   },

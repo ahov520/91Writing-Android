@@ -97,6 +97,22 @@ export function useGoals() {
       }
     }
     await save()
+    // Push stats for Android home-screen widget (if bridge present)
+    try {
+      const daily = goals.value.find((g) => g.type === 'daily' && g.status !== 'archived')
+      const todayWords = daily?.history?.[day] || 0
+      const streak = daily?.streak || 0
+      const { setWidgetStats } = await import('../utils/bridge.js')
+      setWidgetStats({
+        date: day,
+        todayWords,
+        streak,
+        target: daily?.target || 0,
+        updatedAt: new Date().toISOString()
+      })
+    } catch {
+      /* ignore */
+    }
   }
 
   function sumRecent(history, days) {
@@ -157,6 +173,53 @@ export function useGoals() {
     }
   }
 
+  /** Aggregate last N days of writing from daily goal history (or max across goals). */
+  function weekStats(days = 7) {
+    const daily =
+      goals.value.find((g) => g.type === 'daily' && g.status !== 'archived') ||
+      goals.value[0]
+    const history = daily?.history || {}
+    const d = new Date()
+    let total = 0
+    let activeDays = 0
+    let best = 0
+    let bestDate = ''
+    const series = []
+    for (let i = days - 1; i >= 0; i--) {
+      const x = new Date(d)
+      x.setDate(d.getDate() - i)
+      const k = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
+      const words = history[k] || 0
+      total += words
+      if (words > 0) activeDays++
+      if (words > best) {
+        best = words
+        bestDate = k
+      }
+      series.push({
+        date: k,
+        label: `${x.getMonth() + 1}/${x.getDate()}`,
+        words,
+        isToday: k === todayKey()
+      })
+    }
+    const target = daily?.target || 0
+    const weekTarget = target > 0 ? target * days : 0
+    return {
+      days,
+      total,
+      activeDays,
+      best,
+      bestDate,
+      avg: activeDays ? Math.round(total / activeDays) : 0,
+      avgAll: Math.round(total / days),
+      targetDaily: target,
+      weekTarget,
+      pct: weekTarget ? Math.min(100, Math.round((total / weekTarget) * 100)) : 0,
+      series
+    }
+  }
+
   return {
     goals,
     activeGoals,
@@ -169,6 +232,7 @@ export function useGoals() {
     progressPct,
     todayKey,
     heatDays,
-    todayBanner
+    todayBanner,
+    weekStats
   }
 }

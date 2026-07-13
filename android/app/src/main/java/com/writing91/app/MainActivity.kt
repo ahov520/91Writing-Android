@@ -83,6 +83,26 @@ class MainActivity : AppCompatActivity() {
             callback.onReceiveValue(if (uris.isEmpty()) null else uris.toTypedArray())
         }
 
+    private val imagePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode != RESULT_OK || result.data?.data == null) {
+                safeEvalJs("try{window.__writing91OnImage&&window.__writing91OnImage(null)}catch(e){}")
+                return@registerForActivityResult
+            }
+            try {
+                val uri = result.data!!.data!!
+                val dataUrl = compressUriToJpegDataUrl(uri)
+                if (dataUrl == null) {
+                    safeEvalJs("try{window.__writing91OnImage&&window.__writing91OnImage(null)}catch(e){}")
+                    return@registerForActivityResult
+                }
+                val quoted = JSONObject.quote(dataUrl)
+                safeEvalJs("try{window.__writing91OnImage&&window.__writing91OnImage($quoted)}catch(e){}")
+            } catch (_: Exception) {
+                safeEvalJs("try{window.__writing91OnImage&&window.__writing91OnImage(null)}catch(e){}")
+            }
+        }
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,6 +133,56 @@ class MainActivity : AppCompatActivity() {
         webView.addJavascriptInterface(Writing91Bridge(), "Writing91Bridge")
         setupBackHandler()
         loadApp()
+        handleShareIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShareIntent(intent)
+    }
+
+
+    private fun compressUriToJpegDataUrl(uri: android.net.Uri): String? {
+        return try {
+            val input = contentResolver.openInputStream(uri) ?: return null
+            val original = android.graphics.BitmapFactory.decodeStream(input)
+            input.close()
+            if (original == null) return null
+            val max = 320
+            val w = original.width
+            val h = original.height
+            val scale = if (w > max || h > max) {
+                minOf(max.toFloat() / w, max.toFloat() / h)
+            } else 1f
+            val nw = maxOf(1, (w * scale).toInt())
+            val nh = maxOf(1, (h * scale).toInt())
+            val scaled = if (scale < 1f) {
+                android.graphics.Bitmap.createScaledBitmap(original, nw, nh, true)
+            } else original
+            if (scaled !== original) original.recycle()
+            val baos = java.io.ByteArrayOutputStream()
+            scaled.compress(android.graphics.Bitmap.CompressFormat.JPEG, 72, baos)
+            scaled.recycle()
+            val b64 = android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.NO_WRAP)
+            "data:image/jpeg;base64,$b64"
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun handleShareIntent(intent: Intent?) {
+        if (intent == null) return
+        if (intent.action != Intent.ACTION_SEND) return
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
+        if (text.isBlank()) return
+        // deliver after page ready; guard destroyed activity/webview
+        if (!::webView.isInitialized) return
+        webView.postDelayed({
+            if (isFinishing || isDestroyed || !::webView.isInitialized) return@postDelayed
+            val quoted = JSONObject.quote(text)
+            safeEvalJs("try{window.__writing91OnShare&&window.__writing91OnShare($quoted)}catch(e){}")
+        }, 800)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -141,10 +211,26 @@ class MainActivity : AppCompatActivity() {
             useWideViewPort = true
             loadWithOverviewMode = true
             textZoom = 100
-            javaScriptCanOpenWindowsAutomatically = true
+            javaScriptCanOpenWindowsAutomatically = false
             setSupportMultipleWindows(false)
-            userAgentString = "$userAgentString Writing91Android/2.4"
+            // Prefer GPU compositing + offscreen pre-raster for smoother SPA scrolls
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                offscreenPreRaster = true
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                safeBrowsingEnabled = false
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                isAlgorithmicDarkeningAllowed = false
+            }
+            userAgentString = "$userAgentString Writing91Android/2.7.2"
         }
+
+        // Layer type hardware improves long-text scroll in SPA WebViews
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        webView.isVerticalScrollBarEnabled = false
+        webView.isHorizontalScrollBarEnabled = false
+        webView.overScrollMode = View.OVER_SCROLL_NEVER
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(
@@ -243,12 +329,36 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun injectAndroidBridge() {
-        val versionName = try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "2.4"
+
+
+    private fun safeEvalJs(script: String) {
+        if (!::webView.isInitialized) return
+        try {
+            webView.evaluateJavascript(script, null)
         } catch (_: Exception) {
-            "2.4"
         }
+    }
+
+    private fun safeVersionName(): String {
+        return try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                packageManager.getPackageInfo(
+                    packageName,
+                    android.content.pm.PackageManager.PackageInfoFlags.of(0)
+                ).versionName ?: "2.7.2"
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionName ?: "2.7.2"
+            }
+        } catch (_: Exception) {
+            "2.7.2"
+        }
+    }
+
+    private fun injectAndroidBridge() {
+        if (!::webView.isInitialized) return
+        val versionName = safeVersionName()
+        try {
         webView.evaluateJavascript(
             """
             (function(){
@@ -266,17 +376,13 @@ class MainActivity : AppCompatActivity() {
             """.trimIndent(),
             null
         )
+        } catch (_: Exception) {
+        }
     }
 
     inner class Writing91Bridge {
         @JavascriptInterface
-        fun getVersion(): String {
-            return try {
-                packageManager.getPackageInfo(packageName, 0).versionName ?: "2.4.0"
-            } catch (_: Exception) {
-                "2.4.0"
-            }
-        }
+        fun getVersion(): String = safeVersionName()
 
         @JavascriptInterface
         fun keepScreenOn(on: Boolean) {
@@ -343,6 +449,51 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+
+        @JavascriptInterface
+        fun pickImage() {
+            runOnUiThread {
+                try {
+                    val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                        type = "image/*"
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                    }
+                    imagePickerLauncher.launch(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(this@MainActivity, "无法打开相册", Toast.LENGTH_SHORT).show()
+                    safeEvalJs("try{window.__writing91OnImage&&window.__writing91OnImage(null)}catch(e){}")
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun setWidgetStats(json: String?) {
+            try {
+                val prefs = getSharedPreferences("writing91_widget", MODE_PRIVATE)
+                prefs.edit().putString("stats", json ?: "{}").apply()
+                val mgr = android.appwidget.AppWidgetManager.getInstance(this@MainActivity)
+                val cn = android.content.ComponentName(this@MainActivity, StatsWidgetProvider::class.java)
+                val ids = mgr.getAppWidgetIds(cn)
+                if (ids != null && ids.isNotEmpty()) {
+                    val intent = android.content.Intent(this@MainActivity, StatsWidgetProvider::class.java).apply {
+                        action = android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                        putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+                    }
+                    sendBroadcast(intent)
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        @JavascriptInterface
+        fun setAppLockEnabled(on: Boolean) {
+            try {
+                getSharedPreferences("writing91_lock", MODE_PRIVATE)
+                    .edit().putBoolean("enabled", on).apply()
+            } catch (_: Exception) {
+            }
+        }
 
     private fun handleDownload(
         url: String,
@@ -444,28 +595,47 @@ class MainActivity : AppCompatActivity() {
                     finish()
                     return
                 }
-                webView.evaluateJavascript(
-                    "(function(){try{if(location.hash&&location.hash!=='#/'&&location.hash!=='#'){history.back();return true;}return false;}catch(e){return false;}})()"
-                ) { result ->
-                    val handled = result == "true"
-                    if (handled) return@evaluateJavascript
-                    Handler(Looper.getMainLooper()).post {
-                        if (webView.canGoBack()) {
-                            webView.goBack()
-                        } else {
-                            val now = System.currentTimeMillis()
-                            if (now - lastBackPressMs < 2000) {
-                                finish()
+                try {
+                    webView.evaluateJavascript(
+                        """
+                        (function(){
+                          try {
+                            if (typeof window.__writing91ConsumeBack === 'function' && window.__writing91ConsumeBack()) {
+                              return true;
+                            }
+                            if (location.hash && location.hash !== '#/' && location.hash !== '#') {
+                              history.back();
+                              return true;
+                            }
+                            return false;
+                          } catch (e) { return false; }
+                        })()
+                        """.trimIndent()
+                    ) { result ->
+                        if (isFinishing || isDestroyed || !::webView.isInitialized) return@evaluateJavascript
+                        val handled = result == "true"
+                        if (handled) return@evaluateJavascript
+                        Handler(Looper.getMainLooper()).post {
+                            if (isFinishing || isDestroyed || !::webView.isInitialized) return@post
+                            if (webView.canGoBack()) {
+                                webView.goBack()
                             } else {
-                                lastBackPressMs = now
-                                Toast.makeText(
-                                    this@MainActivity,
-                                    R.string.exit_confirm,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                val now = System.currentTimeMillis()
+                                if (now - lastBackPressMs < 2000) {
+                                    finish()
+                                } else {
+                                    lastBackPressMs = now
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        R.string.exit_confirm,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }
                     }
+                } catch (_: Exception) {
+                    finish()
                 }
             }
         })

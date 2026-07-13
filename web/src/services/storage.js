@@ -33,7 +33,14 @@ const MANAGED_KEYS = new Set([
   'creationStudioSyncConfig',
   'customTemplates',
   'aiApiConfigs',
-  'chapterSummaryPromptTemplate'
+  'chapterSummaryPromptTemplate',
+  'backup_slots',
+  'trash_novels',
+  'achievements_v1',
+  'model_profiles',
+  'webdav_config',
+  'app_lock_prefs',
+  'writing91_widget_stats'
 ])
 
 /** Prefixes for per-novel payloads. */
@@ -45,7 +52,11 @@ const MANAGED_PREFIXES = [
   'events_',
   'snapshots_',
   'focusDraft_',
-  'backup_data_'
+  'backup_data_',
+  'editorPos_',
+  'chapterSummary_',
+  'chat_',
+  'volumes_'
 ]
 
 /** Values larger than this (chars) are promoted to IDB even if key is unknown. */
@@ -127,6 +138,23 @@ function idbDelete(db, key) {
   })
 }
 
+/** Apply multiple put/delete ops in a single readwrite transaction. */
+function idbBatch(db, entries) {
+  if (!entries.length) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite')
+    const store = tx.objectStore(STORE)
+    const now = Date.now()
+    for (const [key, op] of entries) {
+      if (op === null) store.delete(key)
+      else store.put({ key, value: op, updatedAt: now })
+    }
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error || new Error('IndexedDB batch failed'))
+    tx.onabort = () => reject(tx.error || new Error('IndexedDB batch aborted'))
+  })
+}
+
 function idbGetAllKeys(db) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readonly')
@@ -158,7 +186,7 @@ function scheduleFlush(immediate = false) {
   flushTimer = setTimeout(() => {
     flushTimer = null
     flushPending().catch((e) => console.warn('[storage] flush failed', e))
-  }, 80)
+  }, 120)
 }
 
 /** Request persistent storage (reduce eviction risk on Android WebView). */
@@ -187,17 +215,19 @@ async function flushPending() {
   }
   const entries = [...pendingWrites.entries()]
   pendingWrites.clear()
-  for (const [key, op] of entries) {
-    try {
-      if (op === null) {
-        await idbDelete(db, key)
-      } else {
-        await idbSet(db, key, op)
+  try {
+    // One transaction for all pending keys — much faster on WebView
+    await idbBatch(db, entries)
+  } catch (e) {
+    console.warn('[storage] batch write failed, falling back per-key', e)
+    for (const [key, op] of entries) {
+      try {
+        if (op === null) await idbDelete(db, key)
+        else await idbSet(db, key, op)
+      } catch (err) {
+        console.warn('[storage] write failed for', key, err)
+        if (!pendingWrites.has(key)) pendingWrites.set(key, op)
       }
-    } catch (e) {
-      console.warn('[storage] write failed for', key, e)
-      // re-queue once
-      if (!pendingWrites.has(key)) pendingWrites.set(key, op)
     }
   }
 }
@@ -316,7 +346,8 @@ function patchLocalStorage() {
       memory.set(k, str)
       pendingWrites.set(k, str)
       // Critical large keys flush sooner
-      const urgent = k === 'novels' || k.startsWith('snapshots_') || k === 'auto_backup_v1'
+      // snapshots / auto_backup: flush ASAP; novels debounced (frequent autosave)
+      const urgent = k.startsWith('snapshots_') || k === 'auto_backup_v1'
       scheduleFlush(urgent)
       try {
         origRemoveItem(k)
@@ -427,6 +458,43 @@ export function listManagedKeys() {
   return [...memory.keys()]
 }
 
+/**
+ * Best-effort storage usage snapshot for UI warnings.
+ * @returns {Promise<{ usage:number, quota:number, usageRatio:number, managedBytes:number, novelsBytes:number }|null>}
+ */
+export async function estimateStorage() {
+  let usage = 0
+  let quota = 0
+  try {
+    if (navigator.storage?.estimate) {
+      const est = await navigator.storage.estimate()
+      usage = Number(est.usage) || 0
+      quota = Number(est.quota) || 0
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // Sum in-memory managed values (UTF-16 approx 2 bytes/char)
+  let managedBytes = 0
+  for (const v of memory.values()) {
+    if (v != null) managedBytes += String(v).length * 2
+  }
+  let novelsBytes = 0
+  try {
+    const n = memory.has('novels')
+      ? memory.get('novels')
+      : localStorage.getItem('novels')
+    if (n) novelsBytes = String(n).length * 2
+  } catch {
+    /* ignore */
+  }
+
+  if (!usage && managedBytes) usage = managedBytes
+  const usageRatio = quota > 0 ? usage / quota : 0
+  return { usage, quota, usageRatio, managedBytes, novelsBytes }
+}
+
 export default {
   initStorage,
   isStorageReady,
@@ -435,5 +503,6 @@ export default {
   removeKey,
   flushStorage,
   requestPersist,
-  listManagedKeys
+  listManagedKeys,
+  estimateStorage
 }

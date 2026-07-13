@@ -7,8 +7,10 @@
 
 let installed = false
 let lastInnerHeight = 0
+let measureRaf = 0
+let focusTimer = 0
 
-function measureViewport() {
+function measureViewportNow() {
   const vv = window.visualViewport
   const h = (vv && vv.height) || window.innerHeight || 0
   const w = (vv && vv.width) || window.innerWidth || 0
@@ -48,6 +50,23 @@ function measureViewport() {
   }
 }
 
+/** Coalesce high-frequency resize/scroll into one paint frame. */
+function measureViewport() {
+  if (measureRaf) return
+  measureRaf = requestAnimationFrame(() => {
+    measureRaf = 0
+    measureViewportNow()
+  })
+}
+
+function scheduleMeasure(delay = 50) {
+  if (focusTimer) clearTimeout(focusTimer)
+  focusTimer = setTimeout(() => {
+    focusTimer = 0
+    measureViewport()
+  }, delay)
+}
+
 function detectAndroid() {
   try {
     const ua = navigator.userAgent || ''
@@ -85,12 +104,12 @@ export function installMobileShell() {
 
   detectAndroid()
   detectStandaloneMobile()
-  measureViewport()
+  measureViewportNow()
 
   window.addEventListener('resize', measureViewport, { passive: true })
   window.addEventListener('orientationchange', () => {
-    setTimeout(measureViewport, 80)
-    setTimeout(measureViewport, 320)
+    scheduleMeasure(80)
+    scheduleMeasure(320)
   })
 
   if (window.visualViewport) {
@@ -103,19 +122,33 @@ export function installMobileShell() {
   }
 
   // Focus changes often correlate with keyboard
-  document.addEventListener('focusin', () => setTimeout(measureViewport, 50), true)
-  document.addEventListener('focusout', () => setTimeout(measureViewport, 50), true)
+  document.addEventListener('focusin', () => scheduleMeasure(50), true)
+  document.addEventListener('focusout', () => scheduleMeasure(50), true)
+
+  const syncOnline = () => {
+    const on = navigator.onLine !== false
+    document.documentElement.classList.toggle('is-offline', !on)
+    document.documentElement.setAttribute('data-online', on ? '1' : '0')
+  }
+  syncOnline()
+  window.addEventListener('online', syncOnline)
+  window.addEventListener('offline', syncOnline)
 }
 
 /**
  * Sync route path onto <html> for CSS (writer immersion etc.).
+ * Real routes are /write/:id and /extras/:id (not /writer).
  */
 export function setRouteChrome(path = '') {
   const p = String(path || '')
   document.documentElement.setAttribute('data-route', p)
-  const isWriter = p === '/writer' || p.startsWith('/writer')
-  document.documentElement.classList.toggle('route-writer', isWriter)
-  document.documentElement.classList.toggle('hide-bottom-nav', isWriter)
+  const isImmersive =
+    p === '/write' ||
+    p.startsWith('/write/') ||
+    p === '/extras' ||
+    p.startsWith('/extras/')
+  document.documentElement.classList.toggle('route-writer', isImmersive)
+  document.documentElement.classList.toggle('hide-bottom-nav', isImmersive)
 }
 
 export default {

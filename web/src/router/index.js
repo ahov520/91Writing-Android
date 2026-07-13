@@ -61,6 +61,12 @@ const routes = [
         meta: { title: '计费' }
       },
       {
+        path: 'stats',
+        name: 'Stats',
+        component: () => import('../views/mobile/Stats.vue'),
+        meta: { title: '统计' }
+      },
+      {
         path: 'write/:id',
         name: 'Writer',
         component: () => import('../views/mobile/Writer.vue'),
@@ -82,7 +88,13 @@ const routes = [
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, saved) {
+    // Restore browser/WebView history position when available; else top of page
+    if (saved) return saved
+    if (to.hash) return { el: to.hash, behavior: 'smooth' }
+    return { top: 0, left: 0 }
+  }
 })
 
 router.afterEach((to) => {

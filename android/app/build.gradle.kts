@@ -21,8 +21,8 @@ android {
         applicationId = "com.writing91.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 7
-        versionName = "2.4.1"
+        versionCode = 15
+        versionName = "2.7.2"
     }
 
     signingConfigs {
@@ -93,5 +93,4 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.webkit)
     implementation(libs.material)
-    implementation(libs.androidx.swiperefresh)
 }

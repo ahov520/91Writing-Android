@@ -1,6 +1,6 @@
 {
   "name": "writing91-android-web",
-  "version": "2.4.0",
+  "version": "2.7.2",
   "description": "91写作 Android 移动端前端",
   "type": "module",
   "scripts": {
@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "pinia": "^2.1.7",
     "vue": "^3.3.8",
     "vue-router": "^4.2.5"
   },
